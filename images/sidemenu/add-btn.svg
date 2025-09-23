@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="18px" height="18px" viewBox="0 0 22 22">
+  <g id="Edit_Add_Plus" data-name="Edit / Add_Plus" transform="translate(5 5)">
+    <path id="Vector" d="M6,10.8h4.8m0,0h4.8m-4.8,0v4.8m0-4.8V6" transform="translate(-5.047 -5.047)" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" strokeWidth="1"/>
+    <g id="Ellipse_50" data-name="Ellipse 50" transform="translate(-5 -5)" fill="none" stroke="#fff" strokeWidth="1">
+      <circle cx="11" cy="11" r="11" stroke="none"/>
+      <circle cx="11" cy="11" r="10.5" fill="none"/>
+    </g>
+  </g>
+</svg>
