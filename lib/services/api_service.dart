@@ -71,4 +71,36 @@ class ApiService {
       throw Exception("Failed to fetch leads: ${response.body}");
     }
   }
+
+  Future<List<Map<String, dynamic>>> getContactList() async {
+    final token = await _storage.read(key: _tokenKey);
+    final payload = {
+      'pageSize': 5,
+      'pageNumber': 1,
+      'columnName': 'UpdatedDateTime',
+      'orderType': 'desc',
+      'filterJson': null,
+      'searchText': null,
+    };
+    final response = await http.post(
+      Uri.parse("$baseUrl/Contact/GetContact"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+        "X-Correlation-Id": generateGUID(), // Generate X-Correlation-Id header
+        "X-Request-Id": generateGUID(), // Generate X-Request-Id header
+      },
+      body: jsonEncode(payload),
+    );
+    print("response  95 from service $jsonDecode(response.body)");
+    if (response.statusCode == 200) {
+      final body = jsonDecode(response.body);
+      print("User name is: $body");
+      final List contacts =
+          body['contacts']; // Graph API returns { "value": [...] }
+      return contacts.map((e) => e as Map<String, dynamic>).toList();
+    } else {
+      throw Exception("Failed to fetch contacts: ${response.body}");
+    }
+  }
 }

@@ -1,5 +1,6 @@
 import 'package:crm_mobile/appDrawer.dart';
 import 'package:crm_mobile/dashboard.dart';
+import 'package:crm_mobile/features/contacts/contacts_list.dart';
 import 'package:crm_mobile/leads.dart';
 import 'package:flutter/material.dart';
 import 'bottomNav.dart';
@@ -18,7 +19,7 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _pages = [
     const Dashboard(),
     const LeadsPage(),
-    const Center(child: Text("Contacts Page")),
+    ContactListWidget(),
     const Center(child: Text("Accounts Page")),
     const Center(child: Text("More Page")),
   ];
