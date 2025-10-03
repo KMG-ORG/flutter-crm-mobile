@@ -45,7 +45,7 @@ class ApiService {
     // final token = await _storage.read(key: "access_token");
     final token = await _storage.read(key: _tokenKey);
     final payload = {
-      'pageSize': 5,
+      'pageSize': 20,
       'pageNumber': 1,
       'columnName': 'UpdatedDateTime',
       'orderType': 'desc',
