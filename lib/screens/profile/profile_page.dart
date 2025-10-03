@@ -14,10 +14,10 @@ class ProfilePage extends StatelessWidget {
           // AppBar with Gradient
           Container(
             padding: const EdgeInsets.only(
-              top: 40,
+              top: 15,
               left: 16,
               right: 16,
-              bottom: 16,
+              bottom: 15,
             ),
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -53,7 +53,8 @@ class ProfilePage extends StatelessWidget {
             margin: const EdgeInsets.all(16),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.pink[50],
+              //color: Colors.pink[50],
+              color: Colors.white,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
