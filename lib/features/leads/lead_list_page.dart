@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:crm_mobile/appDrawer.dart';
 import '../../services/api_service.dart';
-import '../../widgets/app_header.dart';
+import '../../shared/app_header.dart';
 // import '../../widgets/app_footer.dart';
 // import '../../widgets/app_sidebar.dart';
-import '../../bottomNav.dart';
+import '../../shared/bottomNav.dart';
 
 class LeadListPage extends StatefulWidget {
   const LeadListPage({super.key});

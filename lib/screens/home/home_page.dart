@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../widgets/app_header.dart';
-import '../../widgets/app_footer.dart';
-import '../../widgets/app_sidebar.dart';
+import '../../shared/app_header.dart';
+import '../../shared/app_footer.dart';
+import '../../shared/app_sidebar.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

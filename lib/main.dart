@@ -5,7 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'core/app_routes.dart';
 import 'core/theme.dart';
 import 'services/auth_service.dart';
-import 'features/home/home_page.dart';
+import 'screens/home/home_page.dart';
 import 'features/auth/login_page.dart';
 import 'features/leads/lead_list_page.dart';
 
