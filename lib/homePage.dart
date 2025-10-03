@@ -1,6 +1,7 @@
 import 'package:crm_mobile/appDrawer.dart';
 import 'package:crm_mobile/dashboard.dart';
 import 'package:crm_mobile/leads.dart';
+import 'package:crm_mobile/screens/profile/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'shared/bottomNav.dart';
 
@@ -63,7 +64,14 @@ class _HomePageState extends State<HomePage> {
       ),
 
       // ✅ Drawer
-      drawer: AppDrawer(
+      // drawer: AppDrawer(
+      //   onItemTapped: (index) {
+      //     setState(() {
+      //       _selectedIndex = index;
+      //     });
+      //   },
+      // ),
+      drawer: ProfilePage(
         onItemTapped: (index) {
           setState(() {
             _selectedIndex = index;
