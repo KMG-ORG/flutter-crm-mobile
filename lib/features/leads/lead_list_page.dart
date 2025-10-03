@@ -4,7 +4,7 @@ import '../../services/api_service.dart';
 import '../../shared/app_header.dart';
 // import '../../widgets/app_footer.dart';
 // import '../../widgets/app_sidebar.dart';
-import '../../bottomNav.dart';
+import '../../shared/bottomNav.dart';
 
 class LeadListPage extends StatefulWidget {
   const LeadListPage({super.key});

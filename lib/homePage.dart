@@ -2,7 +2,7 @@ import 'package:crm_mobile/appDrawer.dart';
 import 'package:crm_mobile/dashboard.dart';
 import 'package:crm_mobile/leads.dart';
 import 'package:flutter/material.dart';
-import 'bottomNav.dart';
+import 'shared/bottomNav.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
