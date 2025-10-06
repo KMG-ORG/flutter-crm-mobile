@@ -14,10 +14,10 @@ class ProfilePage extends StatelessWidget {
           // AppBar with Gradient
           Container(
             padding: const EdgeInsets.only(
-              top: 40,
+              top: 15,
               left: 16,
               right: 16,
-              bottom: 16,
+              bottom: 15,
             ),
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -53,7 +53,8 @@ class ProfilePage extends StatelessWidget {
             margin: const EdgeInsets.all(16),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.pink[50],
+              //color: Colors.pink[50],
+              color: Colors.white,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -69,32 +70,78 @@ class ProfilePage extends StatelessWidget {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        "Erin Mitchell",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    children: [
+                      // Text(
+                      //   "Erin Mitchell",
+                      //   style: TextStyle(
+                      //     fontSize: 16,
+                      //     fontWeight: FontWeight.bold,
+                      //   ),
+                      // ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment
+                            .spaceBetween, // 👈 pushes to edges
+                        children: [
+                          const Text(
+                            "Erin Mitchell",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            icon: const Icon(
+                              Icons.power_settings_new,
+                              color: Colors.red,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              // handle logout
+                            },
+                          ),
+                        ],
                       ),
                       SizedBox(height: 4),
-                      Text(
-                        "erinMitchell@company.com",
-                        style: TextStyle(color: Colors.black54),
+                      // Text(
+                      //   "erinMitchell@company.com",
+                      //   style: TextStyle(color: Colors.black54),
+                      // ),
+                      Row(
+                        children: const [
+                          Icon(Icons.email, size: 16, color: Colors.black54),
+                          SizedBox(width: 6),
+                          Text(
+                            "erinMitchell@company.com",
+                            style: TextStyle(color: Colors.black54),
+                          ),
+                        ],
                       ),
                       SizedBox(height: 4),
-                      Text("Admin", style: TextStyle(color: Colors.black54)),
+                      //Text("Admin", style: TextStyle(color: Colors.black54)),
+                      Row(
+                        children: const [
+                          Icon(Icons.work, size: 16, color: Colors.black54),
+                          SizedBox(width: 6),
+                          Text(
+                            "Admin",
+                            style: TextStyle(color: Colors.black54),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.power_settings_new,
-                    color: Colors.red,
-                    size: 30,
-                  ),
-                  onPressed: () {},
-                ),
+                // IconButton(
+                //   icon: const Icon(
+                //     Icons.power_settings_new,
+                //     color: Colors.red,
+                //     size: 30,
+                //   ),
+                //   onPressed: () {},
+                // ),
               ],
             ),
           ),
