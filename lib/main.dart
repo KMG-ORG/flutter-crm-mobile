@@ -1,3 +1,4 @@
+import 'package:crm_mobile/features/leads/lead_list_page.dart';
 import 'package:crm_mobile/splashScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -7,7 +8,6 @@ import 'core/theme.dart';
 import 'services/auth_service.dart';
 import 'screens/home/home_page.dart';
 import 'features/auth/login_page.dart';
-import 'features/leads/lead_list_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

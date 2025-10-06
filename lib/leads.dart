@@ -1,185 +1,249 @@
-import 'package:flutter/material.dart';
+// import 'package:crm_mobile/features/leads/add_lead_page.dart';
+// import 'package:crm_mobile/features/leads/lead_view_page.dart';
+// import 'package:flutter/material.dart';
+// import 'services/api_service.dart'; // ✅ Import your API service
 
-class LeadsPage extends StatelessWidget {
-  const LeadsPage({super.key});
+// class LeadsPage extends StatefulWidget {
+//   const LeadsPage({super.key});
 
-  final List<Map<String, String>> leads = const [
-    {
-      "name": "Rahul Test",
-      "company": "Test",
-      "email": "example@example.com",
-      "source": "Advertisement",
-    },
-    {
-      "name": "John Doe",
-      "company": "Acme Inc",
-      "email": "john.doe@example.com",
-      "source": "Website",
-    },
-    {
-      "name": "Jane Smith",
-      "company": "GlobalTech",
-      "email": "jane.smith@example.com",
-      "source": "Referral",
-    },
-  ];
+//   @override
+//   State<LeadsPage> createState() => _LeadsPageState();
+// }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
+// class _LeadsPageState extends State<LeadsPage> {
+//   List<Map<String, dynamic>> leads = [];
+//   bool isLoading = true;
+//   String? errorMessage;
 
-      body: Column(
-        children: [
-          // 🔹 Top Filter Bar
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16 ),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(color: Colors.grey.shade300, width: 1),
-              ),
-            ),
-            child: Row(
-              children: [
-                // Dropdown
-                DropdownButton<String>(
-                  value: "All Leads",
-                  items: const [
-                    DropdownMenuItem(
-                      value: "All Leads",
-                      child: Text("All Leads"),
-                    ),
-                    DropdownMenuItem(
-                      value: "My Leads",
-                      child: Text("My Leads"),
-                    ),
-                    DropdownMenuItem(
-                      value: "Converted",
-                      child: Text("Converted"),
-                    ),
-                  ],
-                  onChanged: (value) {
-                    // Handle filter change
-                  },
-                  underline: const SizedBox(),
-                  icon: const Icon(Icons.arrow_drop_down, color: Colors.blue),
-                  style: const TextStyle(
-                    color: Colors.blue,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const Spacer(),
+//   @override
+//   void initState() {
+//     super.initState();
+//     fetchLeads();
+//   }
 
-                // List icon
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.view_list, color: Colors.blue),
-                ),
+//   Future<void> fetchLeads() async {
+//     try {
+//       final apiService = ApiService();
+//       final data = await apiService.getLeads();
+//       setState(() {
+//         leads = data;
+//         isLoading = false;
+//       });
+//     } catch (e) {
+//       setState(() {
+//         errorMessage = e.toString();
+//         isLoading = false;
+//       });
+//     }
+//   }
 
-                // Map icon
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.map, color: Colors.blue),
-                ),
-              ],
-            ),
-          ),
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       backgroundColor: Colors.white,
 
-          // 🔹 Lead List
-          Expanded(
-            child: ListView.separated(
-              itemCount: leads.length,
-              separatorBuilder: (context, index) =>  Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16), // 🔹 left & right padding
-      child: Divider(
-        height: 1,
-        thickness: 0.8,
-        color: Colors.grey[200],
-      ),
-    ),
-              itemBuilder: (context, index) {
-                final lead = leads[index];
-                return Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CircleAvatar(
-                        radius: 22,
-                        backgroundColor: Colors.grey[300],
-                        child: const Icon(Icons.person, color: Colors.black54),
-                      ),
-                      const SizedBox(width: 12),
+//       body: Column(
+//         children: [
+//           // 🔹 Top Filter Row
+//           Padding(
+//             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+//             child: Row(
+//               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//               children: [
+//                 const Text(
+//                   "All Leads",
+//                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+//                 ),
+//                 Container(
+//                   padding:
+//                       const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+//                   decoration: BoxDecoration(
+//                     border: Border.all(color: Colors.grey.shade300),
+//                     borderRadius: BorderRadius.circular(8),
+//                   ),
+//                   child: Row(
+//                     children: const [
+//                       Text("This Month", style: TextStyle(color: Colors.black87)),
+//                       SizedBox(width: 5),
+//                       Icon(Icons.arrow_forward_ios, size: 14),
+//                     ],
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ),
 
-                      // Lead info
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              lead["name"] ?? "",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            if (lead["company"] != null)
-                              Row(
-                                children: [
-                                  const Icon(Icons.business,
-                                      size: 16, color: Colors.grey),
-                                  const SizedBox(width: 4),
-                                  Text(lead["company"]!,
-                                      style: const TextStyle(
-                                          color: Colors.black54)),
-                                ],
-                              ),
-                            if (lead["email"] != null)
-                              Row(
-                                children: [
-                                  const Icon(Icons.email,
-                                      size: 16, color: Colors.grey),
-                                  const SizedBox(width: 4),
-                                  Text(lead["email"]!,
-                                      style: const TextStyle(
-                                          color: Colors.black54)),
-                                ],
-                              ),
-                            if (lead["source"] != null)
-                              Row(
-                                children: [
-                                  const Icon(Icons.source,
-                                      size: 16, color: Colors.grey),
-                                  const SizedBox(width: 4),
-                                  Text(lead["source"]!,
-                                      style: const TextStyle(
-                                          color: Colors.black54)),
-                                ],
-                              ),
-                          ],
-                        ),
-                      ),
+//           // 🔹 Lead List
+//           Expanded(
+//             child: isLoading
+//                 ? const Center(child: CircularProgressIndicator())
+//                 : errorMessage != null
+//                     ? Center(child: Text("Error: $errorMessage"))
+//                     : RefreshIndicator(
+//                         onRefresh: fetchLeads,
+//                         child: ListView.builder(
+//                           itemCount: leads.length,
+//                           itemBuilder: (context, index) {
+//                             final lead = leads[index];
+//                             return InkWell(
+//                               onTap: () {
+//                                 Navigator.push(
+//                                   context,
+//                                   MaterialPageRoute(
+//                                     builder: (context) => LeadViewPage(
+//                                       leadData: lead,
+//                                     ),
+//                                   ),
+//                                 );
+//                               },
+//                               child: LeadCard(
+//                                 name: lead["fullName"] ?? "Unknown",
+//                                 company: lead["companyName"] ?? "N/A",
+//                                 email: lead["email"] ?? "N/A",
+//                                 contact: lead["contactName"] ?? "N/A",
+//                                 tag: lead["leadSource"] ?? "Cold Call",
+//                               ),
+//                             );
+//                           },
+//                         ),
+//                       ),
+//           ),
+//         ],
+//       ),
 
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+//       // 🔹 Floating Action Button
+//       floatingActionButton: FloatingActionButton(
+//         onPressed: () {
+//           Navigator.push(
+//             context,
+//             MaterialPageRoute(
+//               builder: (context) => const AddLeadPage(),
+//             ),
+//           );
+//         },
+//         backgroundColor: Colors.blue,
+//         child: const Icon(Icons.add),
+//       ),
+//     );
+//   }
+// }
 
-      // 🔹 Floating Action Button
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Add new lead
-        },
-        backgroundColor: Colors.blue,
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
-}
+// // 🔹 Lead Card Widget
+// class LeadCard extends StatelessWidget {
+//   final String name;
+//   final String company;
+//   final String email;
+//   final String contact;
+//   final String tag;
+
+//   const LeadCard({
+//     super.key,
+//     required this.name,
+//     required this.company,
+//     required this.email,
+//     required this.contact,
+//     required this.tag,
+//   });
+
+//   Color _getTagTextColor(String tag) {
+//     switch (tag.toLowerCase()) {
+//       case "advertisement":
+//         return Colors.deepPurple;
+//       case "seminar partner":
+//         return Colors.red;
+//       case "cold call":
+//         return Colors.orange;
+//       default:
+//         return Colors.blue;
+//     }
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final tagColor = _getTagTextColor(tag);
+
+//     return Container(
+//       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+//   decoration: BoxDecoration(
+//     color: Colors.white,
+//     borderRadius: BorderRadius.circular(12),
+//     border: Border.all(
+//       color: Colors.grey.shade300, // ✅ Light gray border
+//       width: 1,
+//     ),
+//   ),
+//       child: Padding(
+//         padding: const EdgeInsets.all(14.0),
+//         child: Row(
+//           children: [
+//             // Left section (Lead details)
+//             Expanded(
+//               child: Column(
+//                 crossAxisAlignment: CrossAxisAlignment.start,
+//                 children: [
+//                   Text(name,
+//                       style: const TextStyle(
+//                           fontSize: 16, fontWeight: FontWeight.bold)),
+//                   const SizedBox(height: 6),
+//                   Row(
+//                     children: [
+//                       const Icon(Icons.business,
+//                           size: 16, color: Colors.deepPurple),
+//                       const SizedBox(width: 6),
+//                       Expanded(child: Text(company,style: TextStyle(color: Colors.grey[600]),)),
+//                     ],
+//                   ),
+//                   const SizedBox(height: 6),
+//                   Row(
+//                     children: [
+//                       const Icon(Icons.email,
+//                           size: 16, color: Colors.deepPurple),
+//                       const SizedBox(width: 6),
+//                       Expanded(child: Text(email,style: TextStyle(color: Colors.grey[600]))),
+//                     ],
+//                   ),
+//                   const SizedBox(height: 6),
+//                   Row(
+//                     children: [
+//                       const Icon(Icons.person,
+//                           size: 16, color: Colors.deepPurple),
+//                       const SizedBox(width: 6),
+//                       Expanded(child: Text(contact,style: TextStyle(color: Colors.grey[600]))),
+//                     ],
+//                   ),
+//                   const SizedBox(height: 6),
+//                   Container(
+//                     padding:
+//                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+//                     decoration: BoxDecoration(
+//                       color: tagColor.withOpacity(0.1), // light pastel background
+//                       borderRadius: BorderRadius.circular(6),
+//                     ),
+//                     child: Text(tag,
+//                         style: TextStyle(color: tagColor, fontSize: 12)),
+//                   ),
+//                 ],
+//               ),
+//             ),
+
+//             // Right section (Call button styled like image)
+//             Container(
+//               decoration: BoxDecoration(
+//                 color: Colors.blue.withOpacity(0.1),
+//                 shape: BoxShape.rectangle,
+//                  borderRadius: BorderRadius.circular(8),
+//               ),
+//               child: IconButton(
+//                 icon: const Icon(Icons.phone_outlined,
+//                     color: Colors.blueAccent, size: 24),
+//                 onPressed: () {
+//                   // Add your call action here
+//                 },
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
