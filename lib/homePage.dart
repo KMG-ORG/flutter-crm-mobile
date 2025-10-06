@@ -1,6 +1,6 @@
-import 'package:crm_mobile/appDrawer.dart';
+
 import 'package:crm_mobile/dashboard.dart';
-import 'package:crm_mobile/leads.dart';
+import 'package:crm_mobile/features/leads/lead_list_page.dart';
 import 'package:crm_mobile/screens/profile/profile_page.dart';
 import 'package:crm_mobile/screens/more/more_page.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +19,7 @@ class _HomePageState extends State<HomePage> {
 
   List<Widget> get _pages => [
     const Dashboard(),
-    const LeadsPage(),
+    const LeadListPage(),
     const Center(child: Text("Contacts Page")),
     const Center(child: Text("Accounts Page")),
     MorePage(
@@ -35,46 +35,80 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      appBar: _selectedIndex == 4
-          ? null // hide AppBar for MorePage
-          : AppBar(
-              title: Text(
-                _getTitleForIndex(_selectedIndex),
-                style: const TextStyle(color: Colors.white),
-              ),
-              // appBar: AppBar(
-              //   title: const Text("Leads", style: TextStyle(color: Colors.white)),
-              iconTheme: const IconThemeData(
-                color: Colors.white,
-              ), // 🔹 makes hamburger icon white
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.search, color: Colors.white),
-                  onPressed: () {},
-                ),
-                IconButton(
-                  icon: const Icon(Icons.settings, color: Colors.white),
-                  onPressed: () {},
-                ),
-                IconButton(
-                  icon: const Icon(Icons.more_vert, color: Colors.white),
-                  onPressed: () {},
-                ),
-              ],
-              // 🔹 Blue Gradient Background
-              flexibleSpace: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0xFF42A5F5), // lighter blue
-                      Color(0xFF1976D2), // darker blue
-                    ],
+
+  appBar: _selectedIndex == 4
+    ? null
+    : AppBar(
+        automaticallyImplyLeading: false,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        title: _selectedIndex == 0
+            ? Row(
+                children: [
+                  // 🔹 Avatar + "Hi Erin!" only for Dashboard
+                  GestureDetector(
+                    onTap: () {
+                      _scaffoldKey.currentState?.openDrawer();
+                    },
+                    child: const CircleAvatar(
+                      radius: 16,
+                      backgroundImage:
+                          AssetImage("assets/images/profile.jpg"),
+                    ),
                   ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    "Hi Erin!",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              )
+            : Text(
+                _getTitleForIndex(_selectedIndex),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search, color: Colors.white),
+            onPressed: () {},
+          ),
+          Container(
+            margin: const EdgeInsets.only(right: 12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(8),
             ),
+            child: IconButton(
+              icon: const Icon(Icons.add, color: Colors.white),
+              onPressed: () {},
+            ),
+          ),
+        ],
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [
+                Color(0xFF5733C7),
+                Color(0xFF9A24C3),
+              ],
+            ),
+          ),
+        ),
+      ),
+
+
+
+
 
       // ✅ Drawer
       // drawer: AppDrawer(
