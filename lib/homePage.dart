@@ -1,5 +1,6 @@
 import 'package:crm_mobile/dashboard.dart';
 import 'package:crm_mobile/features/leads/lead_list_page.dart';
+import 'package:crm_mobile/screens/contacts/contact_page.dart';
 import 'package:crm_mobile/screens/account/account_page.dart';
 import 'package:crm_mobile/screens/profile/profile_page.dart';
 import 'package:crm_mobile/screens/more/more_page.dart';
@@ -20,9 +21,14 @@ class _HomePageState extends State<HomePage> {
   List<Widget> get _pages => [
     const Dashboard(),
     const LeadListPage(),
-    const Center(child: Text("Contacts Page")),
-    //const Center(child: Text("Accounts Page")),
-    // const AccountsPage(),
+    ContactsPage(
+      onClose: () {
+        setState(() {
+          _selectedIndex = 0; // go back to Home
+        });
+      },
+    ),
+
     AccountsPage(
       onClose: () {
         setState(() {
@@ -30,6 +36,7 @@ class _HomePageState extends State<HomePage> {
         });
       },
     ),
+
     MorePage(
       onClose: () {
         setState(() {
