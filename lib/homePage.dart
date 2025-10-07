@@ -1,6 +1,6 @@
-
 import 'package:crm_mobile/dashboard.dart';
 import 'package:crm_mobile/features/leads/lead_list_page.dart';
+import 'package:crm_mobile/screens/contacts/contact_page.dart';
 import 'package:crm_mobile/screens/profile/profile_page.dart';
 import 'package:crm_mobile/screens/more/more_page.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +20,13 @@ class _HomePageState extends State<HomePage> {
   List<Widget> get _pages => [
     const Dashboard(),
     const LeadListPage(),
-    const Center(child: Text("Contacts Page")),
+    ContactsPage(
+      onClose: () {
+        setState(() {
+          _selectedIndex = 0; // go back to Home
+        });
+      },
+    ),
     const Center(child: Text("Accounts Page")),
     MorePage(
       onClose: () {
@@ -36,79 +42,73 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       key: _scaffoldKey,
 
-  appBar: _selectedIndex == 4
-    ? null
-    : AppBar(
-        automaticallyImplyLeading: false,
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        title: _selectedIndex == 0
-            ? Row(
-                children: [
-                  // 🔹 Avatar + "Hi Erin!" only for Dashboard
-                  GestureDetector(
-                    onTap: () {
-                      _scaffoldKey.currentState?.openDrawer();
-                    },
-                    child: const CircleAvatar(
-                      radius: 16,
-                      backgroundImage:
-                          AssetImage("assets/images/profile.jpg"),
+      appBar: _selectedIndex != 0
+          ? null
+          : AppBar(
+              automaticallyImplyLeading: false,
+              elevation: 0,
+              backgroundColor: Colors.transparent,
+              title: _selectedIndex == 0
+                  ? Row(
+                      children: [
+                        // 🔹 Avatar + "Hi Erin!" only for Dashboard
+                        GestureDetector(
+                          onTap: () {
+                            _scaffoldKey.currentState?.openDrawer();
+                          },
+                          child: const CircleAvatar(
+                            radius: 16,
+                            backgroundImage: AssetImage(
+                              "assets/images/profile.jpg",
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          "Hi Erin!",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    )
+                  : Text(
+                      _getTitleForIndex(_selectedIndex),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.search, color: Colors.white),
+                  onPressed: () {},
+                ),
+                Container(
+                  margin: const EdgeInsets.only(right: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    "Hi Erin!",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  child: IconButton(
+                    icon: const Icon(Icons.add, color: Colors.white),
+                    onPressed: () {},
                   ),
-                ],
-              )
-            : Text(
-                _getTitleForIndex(_selectedIndex),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
+                ),
+              ],
+              flexibleSpace: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    colors: [Color(0xFF5733C7), Color(0xFF9A24C3)],
+                  ),
                 ),
               ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: Colors.white),
-            onPressed: () {},
-          ),
-          Container(
-            margin: const EdgeInsets.only(right: 12),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(8),
             ),
-            child: IconButton(
-              icon: const Icon(Icons.add, color: Colors.white),
-              onPressed: () {},
-            ),
-          ),
-        ],
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-              colors: [
-                Color(0xFF5733C7),
-                Color(0xFF9A24C3),
-              ],
-            ),
-          ),
-        ),
-      ),
-
-
-
-
 
       // ✅ Drawer
       // drawer: AppDrawer(
