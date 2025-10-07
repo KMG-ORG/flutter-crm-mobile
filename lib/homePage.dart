@@ -1,6 +1,7 @@
 import 'package:crm_mobile/dashboard.dart';
 import 'package:crm_mobile/features/leads/lead_list_page.dart';
 import 'package:crm_mobile/screens/contacts/contact_page.dart';
+import 'package:crm_mobile/screens/account/account_page.dart';
 import 'package:crm_mobile/screens/profile/profile_page.dart';
 import 'package:crm_mobile/screens/more/more_page.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +28,15 @@ class _HomePageState extends State<HomePage> {
         });
       },
     ),
-    const Center(child: Text("Accounts Page")),
+
+    AccountsPage(
+      onClose: () {
+        setState(() {
+          _selectedIndex = 0; // go back to Home
+        });
+      },
+    ),
+
     MorePage(
       onClose: () {
         setState(() {
@@ -150,7 +159,7 @@ class _HomePageState extends State<HomePage> {
       case 2:
         return "Contacts";
       case 3:
-        return "Accounts";
+        return "";
       default:
         return "";
     }
