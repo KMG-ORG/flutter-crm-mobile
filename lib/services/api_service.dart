@@ -71,4 +71,36 @@ class ApiService {
       throw Exception("Failed to fetch leads: ${response.body}");
     }
   }
+
+  Future<List<Map<String, dynamic>>> getAccounts() async {
+    final token = await _storage.read(key: _tokenKey);
+
+    final payload = {
+      'pageSize': 20,
+      'pageNumber': 1,
+      'columnName': 'UpdatedDateTime',
+      'orderType': 'desc',
+      'filterJson': null,
+      'searchText': null,
+    };
+
+    final response = await http.post(
+      Uri.parse("$baseUrl/Account/GetAccount"), // 👈 change endpoint
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+        "X-Correlation-Id": generateGUID(),
+        "X-Request-Id": generateGUID(),
+      },
+      body: jsonEncode(payload),
+    );
+
+    if (response.statusCode == 200) {
+      final body = jsonDecode(response.body);
+      final List accounts = body['account']; // 👈 match API key
+      return accounts.map((e) => e as Map<String, dynamic>).toList();
+    } else {
+      throw Exception("Failed to fetch accounts: ${response.body}");
+    }
+  }
 }
