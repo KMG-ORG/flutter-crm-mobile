@@ -72,35 +72,28 @@ class ApiService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getContacts() async {
-    // final token = await _storage.read(key: "access_token");
+  Future<Map<String, dynamic>> getContacts(Map<String, dynamic> payload) async {
     final token = await _storage.read(key: _tokenKey);
-    final payload = {
-      'pageSize': 20,
-      'pageNumber': 1,
-      'columnName': 'UpdatedDateTime',
-      'orderType': 'desc',
-      'filterJson': null,
-      'searchText': null,
-    };
     final response = await http.post(
       Uri.parse("$baseUrl/Contact/GetContact"),
+      //headers: {'Content-Type': 'application/json'},
       headers: {
         "Authorization": "Bearer $token",
         "Content-Type": "application/json",
-        "X-Correlation-Id": generateGUID(), // Generate X-Correlation-Id header
-        "X-Request-Id": generateGUID(), // Generate X-Request-Id header
+        "X-Correlation-Id": generateGUID(),
+        "X-Request-Id": generateGUID(),
       },
       body: jsonEncode(payload),
     );
 
     if (response.statusCode == 200) {
       final body = jsonDecode(response.body);
-      final List contacts =
-          body['contacts']; // Graph API returns { "value": [...] }
-      return contacts.map((e) => e as Map<String, dynamic>).toList();
+      return {
+        'data': List<Map<String, dynamic>>.from(body['contacts'] ?? []),
+        'totalCount': body['totalCount'] ?? 0,
+      };
     } else {
-      throw Exception("Failed to fetch contacts: ${response.body}");
+      throw Exception('Failed to load contacts');
     }
   }
 
