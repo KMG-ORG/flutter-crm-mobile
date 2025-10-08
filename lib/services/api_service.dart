@@ -104,20 +104,43 @@ class ApiService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getAccounts() async {
+  // Future<List<Map<String, dynamic>>> getAccounts(payload) async {
+  //   final token = await _storage.read(key: _tokenKey);
+
+  //   // final payload = {
+  //   //   'pageSize': 20,
+  //   //   'pageNumber': 1,
+  //   //   'columnName': 'UpdatedDateTime',
+  //   //   'orderType': 'desc',
+  //   //   'filterJson': null,
+  //   //   'searchText': null,
+  //   // };
+
+  //   final response = await http.post(
+  //     Uri.parse("$baseUrl/Account/GetAccount"), // 👈 change endpoint
+  //     headers: {
+  //       "Authorization": "Bearer $token",
+  //       "Content-Type": "application/json",
+  //       "X-Correlation-Id": generateGUID(),
+  //       "X-Request-Id": generateGUID(),
+  //     },
+  //     body: jsonEncode(payload),
+  //   );
+
+  //   if (response.statusCode == 200) {
+  //     final body = jsonDecode(response.body);
+  //     final List accounts = body['account']; // 👈 match API key
+  //     return accounts.map((e) => e as Map<String, dynamic>).toList();
+  //   } else {
+  //     throw Exception("Failed to fetch accounts: ${response.body}");
+  //   }
+  // }
+
+  Future<Map<String, dynamic>> getAccounts(Map<String, dynamic> payload) async {
     final token = await _storage.read(key: _tokenKey);
-
-    final payload = {
-      'pageSize': 20,
-      'pageNumber': 1,
-      'columnName': 'UpdatedDateTime',
-      'orderType': 'desc',
-      'filterJson': null,
-      'searchText': null,
-    };
-
     final response = await http.post(
-      Uri.parse("$baseUrl/Account/GetAccount"), // 👈 change endpoint
+      Uri.parse("$baseUrl/Account/GetAccount"),
+      //headers: {'Content-Type': 'application/json'},
       headers: {
         "Authorization": "Bearer $token",
         "Content-Type": "application/json",
@@ -129,10 +152,12 @@ class ApiService {
 
     if (response.statusCode == 200) {
       final body = jsonDecode(response.body);
-      final List accounts = body['account']; // 👈 match API key
-      return accounts.map((e) => e as Map<String, dynamic>).toList();
+      return {
+        'data': List<Map<String, dynamic>>.from(body['account'] ?? []),
+        'totalCount': body['totalCount'] ?? 0,
+      };
     } else {
-      throw Exception("Failed to fetch accounts: ${response.body}");
+      throw Exception('Failed to load accounts');
     }
   }
 }
