@@ -1,5 +1,6 @@
 import 'package:crm_mobile/services/api_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 
 class ContactsPage extends StatefulWidget {
   final VoidCallback onClose;
@@ -13,70 +14,176 @@ class _ContactsPageState extends State<ContactsPage> {
   List<Map<String, dynamic>> contacts = [];
   bool isLoading = true;
   String? errorMessage;
+  bool isLoadingMore = false;
+  bool hasMore = true;
+  int pageNumber = 1;
+  final int pageSize = 20;
+  int totalCount = 0;
+
+  final ScrollController _scrollController = ScrollController();
+
+  bool showSearchBar = false; // 🔍 search bar toggle
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    fetchContacts();
+    fetchContacts(pageNumber);
+    _scrollController.addListener(_onScroll);
   }
 
-  Future<void> fetchContacts() async {
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    // Trigger only if near bottom, not already loading, and more data exists
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200 &&
+        !isLoadingMore &&
+        hasMore) {
+      pageNumber++;
+      fetchContacts(pageNumber);
+    }
+  }
+
+  Future<void> fetchContacts(int page, [String? search]) async {
     try {
+      if (page == 1) {
+        setState(() {
+          isLoading = true;
+        });
+      } else {
+        setState(() {
+          isLoadingMore = true;
+        });
+      }
+
       final apiService = ApiService();
-      final data = await apiService.getContacts();
+
+      final payload = {
+        'pageSize': pageSize,
+        'pageNumber': page,
+        'columnName': 'UpdatedDateTime',
+        'orderType': 'desc',
+        'filterJson': null,
+        'searchText': (search != null && search.trim().isNotEmpty)
+            ? search.trim()
+            : null,
+      };
+
+      // final response = await apiService.getAccounts(
+      //   payload,
+      // ); // 🔹 Adjust API call
+      final response =
+          await apiService.getContacts(payload) as Map<String, dynamic>;
+
+      final List<Map<String, dynamic>> newAccounts =
+          (response['data'] as List<dynamic>? ?? [])
+              .map((item) => Map<String, dynamic>.from(item as Map))
+              .toList();
+
+      totalCount =
+          int.tryParse(response['totalCount']?.toString() ?? '') ?? totalCount;
       setState(() {
-        contacts = data;
+        if (page == 1) {
+          contacts = newAccounts;
+        } else {
+          contacts.addAll(newAccounts);
+        }
+
+        hasMore = contacts.length < totalCount;
         isLoading = false;
+        isLoadingMore = false;
       });
     } catch (e) {
       setState(() {
-        errorMessage = e.toString();
         isLoading = false;
+        isLoadingMore = false;
       });
     }
   }
 
+  void onSearchPressed() {
+    if (showSearchBar) {
+      // when already visible → perform search
+      fetchContacts(1, _searchController.text.trim());
+    } else {
+      // show the search bar
+      setState(() {
+        showSearchBar = true;
+      });
+    }
+  }
+
+  Future<void> _refreshContacts() async {
+    pageNumber = 1;
+    hasMore = true;
+    await fetchContacts(pageNumber);
+  }
+
+  void onCancelSearch() {
+    setState(() {
+      showSearchBar = false;
+      _searchController.clear();
+    });
+    fetchContacts(1); // reload all data
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
-        title: const Text(
-          "Contacts",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w300,
-            color: Colors.white,
-          ),
-        ),
+        title: showSearchBar
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: "Search contacts...",
+                  hintStyle: const TextStyle(color: Colors.white70),
+                  border: InputBorder.none,
+                ),
+                style: const TextStyle(color: Colors.white),
+                onSubmitted: (value) => fetchContacts(1, value),
+              )
+            : const Text(
+                "Contacts",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w300,
+                  color: Colors.white,
+                ),
+              ),
         centerTitle: true,
-        //leading: const Icon(Icons.arrow_back),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: widget.onClose,
         ),
-        // actions: [
-        //   IconButton(
-        //     icon: const Icon(Icons.add_circle_outline),
-        //     onPressed: () {},
-        //   ),
-        // ],
         actions: [
           IconButton(
-            icon: const Icon(Icons.search, color: Colors.white),
-            onPressed: () {},
-          ),
-          Container(
-            margin: const EdgeInsets.only(right: 12),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(8),
+            icon: Icon(
+              showSearchBar ? Icons.check : Icons.search,
+              color: Colors.white,
             ),
-            child: IconButton(
-              icon: const Icon(Icons.add, color: Colors.white),
-              onPressed: () {},
-            ),
+            onPressed: onSearchPressed,
           ),
+          if (showSearchBar)
+            IconButton(
+              icon: const Icon(Icons.close, color: Colors.white),
+              onPressed: onCancelSearch,
+            )
+          else
+            Container(
+              margin: const EdgeInsets.only(right: 12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
         ],
         flexibleSpace: Container(
           decoration: const BoxDecoration(
@@ -90,7 +197,6 @@ class _ContactsPageState extends State<ContactsPage> {
       ),
       body: Column(
         children: [
-          // All Contacts Header
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Row(
@@ -103,30 +209,73 @@ class _ContactsPageState extends State<ContactsPage> {
               ],
             ),
           ),
-
-          // Contacts List
           Expanded(
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : errorMessage != null
                 ? Center(child: Text("Error: $errorMessage"))
+                : contacts.isEmpty
+                ? const Center(child: Text("No contacts found"))
                 : RefreshIndicator(
-                    onRefresh: fetchContacts, // optional refresh function
+                    onRefresh: _refreshContacts,
                     child: ListView.builder(
-                      itemCount: contacts.length,
+                      itemCount: contacts.length + (isLoadingMore ? 1 : 0),
+                      controller: _scrollController,
                       itemBuilder: (context, index) {
-                        final contact = contacts[index];
-                        return contactCard(
-                          name: contact['fullName'] ?? "Unknown",
-                          category: contact['account'] ?? "N/A",
-                          email: contact['email'] ?? "N/A",
-                          phone: contact['phone'] ?? "N/A",
-                        );
+                        if (index < contacts.length) {
+                          final contact = contacts[index];
+                          return contactCard(
+                            name: contact['fullName'] ?? "Unknown",
+                            category: contact['account'] ?? "N/A",
+                            email: contact['email'] ?? "N/A",
+                            phone: contact['phone'] ?? "N/A",
+                          );
+                        } else {
+                          return const Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        }
                       },
                     ),
                   ),
           ),
         ],
+      ),
+      floatingActionButton: Container(
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            colors: [Color(0xFF5733C7), Color(0xFF9A24C3)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: SpeedDial(
+          //icon: Icons.add,
+          child: const Icon(Icons.add, color: Colors.white),
+          activeChild: const Icon(Icons.close, color: Colors.white),
+          activeIcon: Icons.close,
+          backgroundColor: Colors.transparent, // Let gradient show
+          elevation: 0, // remove shadow for clean gradient
+
+          children: [
+            SpeedDialChild(
+              child: const Icon(Icons.person),
+              label: 'Create Accounts',
+              onTap: () {
+                // Your create accounts logic
+              },
+            ),
+            SpeedDialChild(
+              child: const Icon(Icons.download),
+              label: 'Import Accounts',
+              onTap: () {
+                // Your import accounts logic
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -138,15 +287,15 @@ class _ContactsPageState extends State<ContactsPage> {
     required String phone,
   }) {
     return Card(
+      color: Colors.white,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      elevation: 1,
+      elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Stack(
           alignment: Alignment.centerRight,
           children: [
-            // Main body column
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -196,7 +345,6 @@ class _ContactsPageState extends State<ContactsPage> {
                 ),
               ],
             ),
-            // Phone icon at center right
             Positioned(
               right: 0,
               child: Container(
