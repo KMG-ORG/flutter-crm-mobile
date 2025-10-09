@@ -1,3 +1,4 @@
+import 'package:crm_mobile/screens/contacts/sortby.dart';
 import 'package:crm_mobile/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
@@ -24,6 +25,7 @@ class _ContactsPageState extends State<ContactsPage> {
 
   bool showSearchBar = false; // 🔍 search bar toggle
   final TextEditingController _searchController = TextEditingController();
+  String? selectedOption; // For Options dropdown
 
   @override
   void initState() {
@@ -201,10 +203,101 @@ class _ContactsPageState extends State<ContactsPage> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                Text(
+              children: [
+                const Text(
                   "All Contacts",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                Row(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF2E9FB),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: PopupMenuButton<String>(
+                        color: Colors.white,
+                        offset: const Offset(0, 30),
+                        onSelected: (value) {
+                          setState(() {
+                            selectedOption = value;
+                          });
+                        },
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: "Manage Tags",
+                            child: Text(
+                              "Manage Tags",
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            value: "Mass Email",
+                            child: Text(
+                              "Mass Email",
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            value: "Export Contacts",
+                            child: Text(
+                              "Export Contacts",
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                        child: Row(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                              ),
+                              child: Text(
+                                "Options",
+                                style: TextStyle(
+                                  color: Colors.purple[800],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            const Icon(
+                              Icons.keyboard_arrow_down,
+                              color: Colors.purple,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF2E9FB),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.all(6),
+                      child: GestureDetector(
+                        onTap: () {
+                          // Navigator.of(context).push(
+                          //   MaterialPageRoute(builder: (_) => SortFilterPage()),
+                          // );
+                        },
+                        child: const Icon(
+                          Icons.filter_list,
+                          color: Colors.purple,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
