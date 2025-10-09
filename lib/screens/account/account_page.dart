@@ -197,37 +197,56 @@ class _AccountsPageState extends State<AccountsPage> {
           ),
         ),
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : accounts.isEmpty
-          ? const Center(child: Text("No accounts found"))
-          : RefreshIndicator(
-              onRefresh: _refreshAccounts,
-              child: ListView.builder(
-                controller: _scrollController,
-                itemCount: accounts.length + (isLoadingMore ? 1 : 0),
-                itemBuilder: (context, index) {
-                  if (index < accounts.length) {
-                    final account = accounts[index];
-                    return contactCard(
-                      name: account["name"] ?? "Unknown",
-                      category: account["industry"] ?? "N/A",
-                      website: account["website"] ?? "N/A",
-                      phone: account["phone"] ?? "N/A",
-                      email: account["createdBy"] ?? "N/A",
-                      type: account["accountType"] ?? "N/A",
-                      amount: (account["annualRevenue"] ?? "0").toString(),
-                    );
-                  } else {
-                    // Loading indicator at bottom
-                    return const Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Center(child: CircularProgressIndicator()),
-                    );
-                  }
-                },
-              ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: const [
+                Text(
+                  "All Accounts",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
+          ),
+          Expanded(
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : accounts.isEmpty
+                ? const Center(child: Text("No accounts found"))
+                : RefreshIndicator(
+                    onRefresh: _refreshAccounts,
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      itemCount: accounts.length + (isLoadingMore ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index < accounts.length) {
+                          final account = accounts[index];
+                          return contactCard(
+                            name: account["name"] ?? "Unknown",
+                            category: account["industry"] ?? "N/A",
+                            website: account["website"] ?? "N/A",
+                            phone: account["phone"] ?? "N/A",
+                            email: account["createdBy"] ?? "N/A",
+                            type: account["accountType"] ?? "N/A",
+                            amount: (account["annualRevenue"] ?? "0")
+                                .toString(),
+                          );
+                        } else {
+                          // Loading indicator at bottom
+                          return const Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+          ),
+        ],
+      ),
       floatingActionButton: Container(
         decoration: const BoxDecoration(
           shape: BoxShape.circle,
