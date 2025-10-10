@@ -1,3 +1,4 @@
+import 'package:crm_mobile/screens/opportunity/opportunity_page.dart';
 import 'package:flutter/material.dart';
 
 class MorePage extends StatelessWidget {
@@ -75,28 +76,35 @@ class MorePage extends StatelessWidget {
               separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final item = items[index];
-                return Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.purple.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(12),
+
+                return InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () {
+                    _handleItemTap(context, item["label"] as String);
+                  },
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.purple.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          item["icon"] as IconData,
+                          color: Colors.purple,
+                        ),
                       ),
-                      child: Icon(
-                        item["icon"] as IconData,
-                        color: Colors.purple,
+                      const SizedBox(width: 16),
+                      Text(
+                        item["label"] as String,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Text(
-                      item["label"] as String,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 );
               },
             ),
@@ -104,5 +112,36 @@ class MorePage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  // ✅ Handle item tap logic
+  void _handleItemTap(BuildContext context, String label) {
+    switch (label) {
+      case "Opportunity":
+        Navigator.push(
+          context,
+            MaterialPageRoute(
+              builder: (_) => OpportunityPage(
+                onClose: () {
+                  Navigator.pop(context);
+                },
+              ),
+            ),
+        );
+        break;
+
+      case "Campaigns":
+      // TODO: Add navigation for Campaigns
+        break;
+
+      case "Quote Ai":
+      // TODO: Add navigation for Quote Ai
+        break;
+
+      default:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Coming soon: $label')),
+        );
+    }
   }
 }
