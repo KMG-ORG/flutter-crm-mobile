@@ -19,6 +19,7 @@ class _AccountsPageState extends State<AccountsPage> {
   int pageNumber = 1;
   final int pageSize = 200;
   int totalCount = 0;
+  String? selectedOption;
 
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
@@ -203,10 +204,91 @@ class _AccountsPageState extends State<AccountsPage> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
+              children: [
                 Text(
                   "All Accounts",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                Row(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF2E9FB),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: PopupMenuButton<String>(
+                        color: Colors.white,
+                        offset: const Offset(0, 30),
+                        onSelected: (value) {
+                          setState(() {
+                            selectedOption = value;
+                          });
+                        },
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: "Manage Tags",
+                            child: Text(
+                              "Manage Tags",
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            value: "Export Accounts",
+                            child: Text(
+                              "Export Accounts",
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                        child: Row(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                              ),
+                              child: Text(
+                                "Options",
+                                style: TextStyle(
+                                  color: Colors.purple[800],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            const Icon(
+                              Icons.keyboard_arrow_down,
+                              color: Colors.purple,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF2E9FB),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.all(6),
+                      child: GestureDetector(
+                        onTap: () {
+                          // Navigator.of(context).push(
+                          //   MaterialPageRoute(builder: (_) => SortFilterPage()),
+                          // );
+                        },
+                        child: const Icon(
+                          Icons.filter_list,
+                          color: Colors.purple,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
