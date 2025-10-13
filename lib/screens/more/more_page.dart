@@ -71,7 +71,6 @@ class MorePage extends StatelessWidget {
             ),
           ),
 
-          // List of items
           // Expanded(
           //   child: ListView.separated(
           //     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -79,97 +78,159 @@ class MorePage extends StatelessWidget {
           //     separatorBuilder: (_, __) => const SizedBox(height: 12),
           //     itemBuilder: (context, index) {
           //       final item = items[index];
-          //       return Row(
-          //         children: [
-          //           Container(
-          //             padding: const EdgeInsets.all(10),
-          //             decoration: BoxDecoration(
-          //               color: Colors.purple.withOpacity(0.05),
-          //               borderRadius: BorderRadius.circular(12),
+          //       return GestureDetector(
+          //         onTap: () {
+          //           if (item["label"] == "Sales") {
+          //             Navigator.push(
+          //               context,
+          //               MaterialPageRoute(
+          //                 builder: (context) => const SalesPage(),
+          //               ),
+          //             );
+          //           }
+          //           if (item["label"] == "Tickets") {
+          //             Navigator.push(
+          //               context,
+          //               MaterialPageRoute(
+          //                 builder: (context) => const TicketsPage(),
+          //               ),
+          //             );
+          //           }
+          //           if (item["label"] == "Campaigns") {
+          //             Navigator.push(
+          //               context,
+          //               MaterialPageRoute(
+          //                 builder: (context) => const CampaignsPage(),
+          //               ),
+          //             );
+          //           }
+          //           if (item["label"] == "Opportunity") {
+          //             Navigator.push(
+          //               context,
+          //               MaterialPageRoute(
+          //                 builder: (context) => const OpportunityPage(),
+          //               ),
+          //             );
+          //           }
+          //         },
+          //         child: Row(
+          //           children: [
+          //             Container(
+          //               padding: const EdgeInsets.all(10),
+          //               decoration: BoxDecoration(
+          //                 color: Colors.purple.withOpacity(0.05),
+          //                 borderRadius: BorderRadius.circular(12),
+          //               ),
+          //               child: Icon(
+          //                 item["icon"] as IconData,
+          //                 color: Colors.purple,
+          //               ),
           //             ),
-          //             child: Icon(
-          //               item["icon"] as IconData,
-          //               color: Colors.purple,
+          //             const SizedBox(width: 16),
+          //             Text(
+          //               item["label"] as String,
+          //               style: const TextStyle(
+          //                 fontSize: 16,
+          //                 fontWeight: FontWeight.w500,
+          //               ),
           //             ),
-          //           ),
-          //           const SizedBox(width: 16),
-          //           Text(
-          //             item["label"] as String,
-          //             style: const TextStyle(
-          //               fontSize: 16,
-          //               fontWeight: FontWeight.w500,
-          //             ),
-          //           ),
-          //         ],
+          //           ],
+          //         ),
           //       );
           //     },
           //   ),
           // ),
           Expanded(
             child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               itemCount: items.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              separatorBuilder: (_, __) => const SizedBox(height: 6),
               itemBuilder: (context, index) {
                 final item = items[index];
-                return GestureDetector(
-                  onTap: () {
-                    if (item["label"] == "Sales") {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const SalesPage(),
+                bool isHovered = false;
+
+                return StatefulBuilder(
+                  builder: (context, setState) {
+                    return MouseRegion(
+                      onEnter: (_) => setState(() => isHovered = true),
+                      onExit: (_) => setState(() => isHovered = false),
+                      cursor: SystemMouseCursors.click, // 🖱 pointer cursor
+                      child: GestureDetector(
+                        onTap: () {
+                          if (item["label"] == "Sales") {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SalesPage(),
+                              ),
+                            );
+                          }
+                          if (item["label"] == "Tickets") {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const TicketsPage(),
+                              ),
+                            );
+                          }
+                          if (item["label"] == "Campaigns") {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const CampaignsPage(),
+                              ),
+                            );
+                          }
+                          if (item["label"] == "Opportunity") {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => OpportunityPage(
+                                  //onClose: () => Navigator.pop(context),
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          decoration: BoxDecoration(
+                            color: isHovered
+                                ? Colors.purple.withOpacity(0.05)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.purple.withOpacity(0.05),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  item["icon"] as IconData,
+                                  color: Colors.purple,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                item["label"] as String,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                  color: isHovered
+                                      ? Colors.purple
+                                      : Colors.black,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      );
-                    }
-                    if (item["label"] == "Tickets") {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const TicketsPage(),
-                        ),
-                      );
-                    }
-                    if (item["label"] == "Campaigns") {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const CampaignsPage(),
-                        ),
-                      );
-                    }
-                    if (item["label"] == "Opportunity") {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const OpportunityPage(),
-                        ),
-                      );
-                    }
+                      ),
+                    );
                   },
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.purple.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          item["icon"] as IconData,
-                          color: Colors.purple,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Text(
-                        item["label"] as String,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
                 );
               },
             ),
