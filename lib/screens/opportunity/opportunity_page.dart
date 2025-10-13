@@ -182,16 +182,20 @@ class _OpportunityPageState extends State<OpportunityPage> {
               onPressed: onCancelSearch,
             )
           else
-            Container(
-              margin: const EdgeInsets.only(right: 12),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              // child: IconButton(
-              //   icon: const Icon(Icons.add, color: Colors.white),
-              //   onPressed: () {},
-              // ),
+            // Container(
+            //   margin: const EdgeInsets.only(right: 12),
+            //   decoration: BoxDecoration(
+            //     color: Colors.white.withOpacity(0.2),
+            //     borderRadius: BorderRadius.circular(8),
+            //   ),
+            //   // child: IconButton(
+            //   //   icon: const Icon(Icons.add, color: Colors.white),
+            //   //   onPressed: () {},
+            //   // ),
+            // ),
+            IconButton(
+              icon: const Icon(Icons.add_circle_outline, color: Colors.white),
+              onPressed: () {},
             ),
         ],
         flexibleSpace: Container(
