@@ -3,8 +3,8 @@ import 'package:crm_mobile/services/api_service.dart';
 import 'package:intl/intl.dart';
 
 class OpportunityPage extends StatefulWidget {
-  final VoidCallback onClose;
-  const OpportunityPage({super.key, required this.onClose});
+  //final VoidCallback onClose;
+  const OpportunityPage({super.key});
 
   @override
   State<OpportunityPage> createState() => _OpportunityPageState();
@@ -165,7 +165,8 @@ class _OpportunityPageState extends State<OpportunityPage> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: widget.onClose,
+          //onPressed: widget.onClose,
+          onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
