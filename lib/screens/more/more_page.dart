@@ -1,3 +1,4 @@
+import 'package:crm_mobile/screens/opportunity/opportunity_page.dart';
 import 'package:crm_mobile/screens/sales/sales_page.dart';
 import 'package:crm_mobile/screens/campaigns/campaign_page.dart';
 import 'package:crm_mobile/screens/ticket/ticket_page.dart';
@@ -137,6 +138,14 @@ class MorePage extends StatelessWidget {
                         ),
                       );
                     }
+                    if (item["label"] == "Opportunity") {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const OpportunityPage(),
+                        ),
+                      );
+                    }
                   },
                   child: Row(
                     children: [
@@ -169,4 +178,35 @@ class MorePage extends StatelessWidget {
       ),
     );
   }
+
+  // ✅ Handle item tap logic
+  // void _handleItemTap(BuildContext context, String label) {
+  //   switch (label) {
+  //     case "Opportunity":
+  //       Navigator.push(
+  //         context,
+  //         MaterialPageRoute(
+  //           builder: (_) => OpportunityPage(
+  //             onClose: () {
+  //               Navigator.pop(context);
+  //             },
+  //           ),
+  //         ),
+  //       );
+  //       break;
+
+  //     case "Campaigns":
+  //       // TODO: Add navigation for Campaigns
+  //       break;
+
+  //     case "Quote Ai":
+  //       // TODO: Add navigation for Quote Ai
+  //       break;
+
+  //     default:
+  //       ScaffoldMessenger.of(
+  //         context,
+  //       ).showSnackBar(SnackBar(content: Text('Coming soon: $label')));
+  //   }
+  // }
 }
