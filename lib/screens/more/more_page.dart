@@ -1,3 +1,4 @@
+import 'package:crm_mobile/screens/sales/sales_page.dart';
 import 'package:flutter/material.dart';
 
 class MorePage extends StatelessWidget {
@@ -68,6 +69,39 @@ class MorePage extends StatelessWidget {
           ),
 
           // List of items
+          // Expanded(
+          //   child: ListView.separated(
+          //     padding: const EdgeInsets.symmetric(horizontal: 16),
+          //     itemCount: items.length,
+          //     separatorBuilder: (_, __) => const SizedBox(height: 12),
+          //     itemBuilder: (context, index) {
+          //       final item = items[index];
+          //       return Row(
+          //         children: [
+          //           Container(
+          //             padding: const EdgeInsets.all(10),
+          //             decoration: BoxDecoration(
+          //               color: Colors.purple.withOpacity(0.05),
+          //               borderRadius: BorderRadius.circular(12),
+          //             ),
+          //             child: Icon(
+          //               item["icon"] as IconData,
+          //               color: Colors.purple,
+          //             ),
+          //           ),
+          //           const SizedBox(width: 16),
+          //           Text(
+          //             item["label"] as String,
+          //             style: const TextStyle(
+          //               fontSize: 16,
+          //               fontWeight: FontWeight.w500,
+          //             ),
+          //           ),
+          //         ],
+          //       );
+          //     },
+          //   ),
+          // ),
           Expanded(
             child: ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -75,28 +109,40 @@ class MorePage extends StatelessWidget {
               separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final item = items[index];
-                return Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.purple.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(12),
+                return GestureDetector(
+                  onTap: () {
+                    if (item["label"] == "Sales") {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SalesPage(),
+                        ),
+                      );
+                    }
+                  },
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.purple.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          item["icon"] as IconData,
+                          color: Colors.purple,
+                        ),
                       ),
-                      child: Icon(
-                        item["icon"] as IconData,
-                        color: Colors.purple,
+                      const SizedBox(width: 16),
+                      Text(
+                        item["label"] as String,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Text(
-                      item["label"] as String,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 );
               },
             ),
