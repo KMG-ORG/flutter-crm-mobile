@@ -1,3 +1,4 @@
+import 'package:crm_mobile/screens/campaigns/campaign_page.dart';
 import 'package:crm_mobile/screens/ticket/ticket_page.dart';
 import 'package:flutter/material.dart';
 
@@ -116,6 +117,14 @@ class MorePage extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => const TicketsPage(),
+                        ),
+                      );
+                    }
+                    if (item["label"] == "Campaigns") {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CampaignsPage(),
                         ),
                       );
                     }
