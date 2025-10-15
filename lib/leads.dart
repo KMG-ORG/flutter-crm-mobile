@@ -1,5 +1,5 @@
-// import 'package:crm_mobile/features/leads/add_lead_page.dart';
-// import 'package:crm_mobile/features/leads/lead_view_page.dart';
+// import 'package:crmMobileUi/features/leads/add_lead_page.dart';
+// import 'package:crmMobileUi/features/leads/lead_view_page.dart';
 // import 'package:flutter/material.dart';
 // import 'services/api_service.dart'; // ✅ Import your API service
 

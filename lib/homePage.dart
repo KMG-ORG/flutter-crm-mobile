@@ -1,9 +1,9 @@
-import 'package:crm_mobile/dashboard.dart';
-import 'package:crm_mobile/features/leads/lead_list_page.dart';
-import 'package:crm_mobile/screens/contacts/contact_page.dart';
-import 'package:crm_mobile/screens/account/account_page.dart';
-import 'package:crm_mobile/screens/profile/profile_page.dart';
-import 'package:crm_mobile/screens/more/more_page.dart';
+import 'package:crmMobileUi/dashboard.dart';
+import 'package:crmMobileUi/features/leads/lead_list_page.dart';
+import 'package:crmMobileUi/screens/contacts/contact_page.dart';
+import 'package:crmMobileUi/screens/account/account_page.dart';
+import 'package:crmMobileUi/screens/profile/profile_page.dart';
+import 'package:crmMobileUi/screens/more/more_page.dart';
 import 'package:flutter/material.dart';
 import 'shared/bottomNav.dart';
 

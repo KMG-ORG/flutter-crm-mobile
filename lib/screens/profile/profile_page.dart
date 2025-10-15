@@ -1,4 +1,6 @@
+import 'package:crmMobileUi/core/services/auth_service.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class ProfilePage extends StatelessWidget {
   final Function(int) onItemTapped;
@@ -8,6 +10,7 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authService = context.read<AuthService>();
     return Scaffold(
       body: Column(
         children: [
@@ -98,10 +101,25 @@ class ProfilePage extends StatelessWidget {
                               color: Colors.red,
                               size: 20,
                             ),
-                            onPressed: () {
-                              // handle logout
+                            onPressed: () async {
+                              await authService.logout(); // clears cache
+                              Navigator.of(
+                                context,
+                              ).pushReplacementNamed('/login');
                             },
                           ),
+                          // IconButton(
+                          //   padding: EdgeInsets.zero,
+                          //   constraints: const BoxConstraints(),
+                          //   icon: const Icon(
+                          //     Icons.power_settings_new,
+                          //     color: Colors.red,
+                          //     size: 20,
+                          //   ),
+                          //   onPressed: () {
+                          //     // handle logout
+                          //   },
+                          // ),
                         ],
                       ),
                       SizedBox(height: 4),

@@ -1,0 +1,19 @@
+{
+  "client_id": "beb2c846-d811-4014-9479-00c6361b18e2",
+  "redirect_uri": "msalbeb2c846-d811-4014-9479-00c6361b18e2://auth.qa",
+  "account_mode": "SINGLE",
+  "broker_redirect_uri_registered": false,
+  "multiple_clouds_supported": false,
+  "authorization_user_agent": "DEFAULT",
+  "authorities": [
+    {
+      "type": "AAD",
+      "authority_url": "https://login.microsoftonline.com/9c822166-54c6-4c9c-b0eb-d390a8f54e66"
+    }
+  ],
+  "logging": {
+    "pii_enabled": false,
+    "log_level": "VERBOSE",
+    "logcat_enabled": true
+  }
+}

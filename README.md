@@ -1,4 +1,4 @@
-# crm_mobile
+# crmMobileUi
 
 A new Flutter project.
 

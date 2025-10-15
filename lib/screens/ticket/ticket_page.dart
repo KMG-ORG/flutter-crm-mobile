@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:crm_mobile/services/api_service.dart';
+import 'package:crmMobileUi/services/api_service.dart';
 import 'package:intl/intl.dart';
 
 class TicketsPage extends StatefulWidget {

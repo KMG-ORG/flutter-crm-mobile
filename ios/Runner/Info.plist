@@ -13,7 +13,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>crm_mobile</string>
+	<string>crmMobileUi</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -45,5 +45,19 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+	<dict>
+		<key>CFBundleURLSchemes</key>
+		<array>
+		<string>msalbeb2c846-d811-4014-9479-00c6361b18e2</string>
+		</array>
+	</dict>
+	</array>
+
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+	<string>msauth</string>
+	</array>
 </dict>
 </plist>

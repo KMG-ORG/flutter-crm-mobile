@@ -1,5 +1,5 @@
 // import 'package:flutter/material.dart';
-// import 'package:crm_mobile/appDrawer.dart';
+// import 'package:crmMobileUi/appDrawer.dart';
 // import '../../services/api_service.dart';
 // import '../../shared/app_header.dart';
 // // import '../../widgets/app_footer.dart';
@@ -86,10 +86,9 @@
 //   }
 // }
 
-
-import 'package:crm_mobile/features/leads/add_lead_page.dart';
-import 'package:crm_mobile/features/leads/lead_view_page.dart';
-import 'package:crm_mobile/services/api_service.dart';
+import 'package:crmMobileUi/features/leads/add_lead_page.dart';
+import 'package:crmMobileUi/features/leads/lead_view_page.dart';
+import 'package:crmMobileUi/services/api_service.dart';
 import 'package:flutter/material.dart';
 
 class LeadListPage extends StatefulWidget {
@@ -144,15 +143,20 @@ class _LeadListPageState extends State<LeadListPage> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey.shade300),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     children: const [
-                      Text("This Month", style: TextStyle(color: Colors.black87)),
+                      Text(
+                        "This Month",
+                        style: TextStyle(color: Colors.black87),
+                      ),
                       SizedBox(width: 5),
                       Icon(Icons.arrow_forward_ios, size: 14),
                     ],
@@ -167,35 +171,34 @@ class _LeadListPageState extends State<LeadListPage> {
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : errorMessage != null
-                    ? Center(child: Text("Error: $errorMessage"))
-                    : RefreshIndicator(
-                        onRefresh: fetchLeads,
-                        child: ListView.builder(
-                          itemCount: leads.length,
-                          itemBuilder: (context, index) {
-                            final lead = leads[index];
-                            return InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => LeadViewPage(
-                                      leadData: lead,
-                                    ),
-                                  ),
-                                );
-                              },
-                              child: LeadCard(
-                                name: lead["fullName"] ?? "Unknown",
-                                company: lead["companyName"] ?? "N/A",
-                                email: lead["email"] ?? "N/A",
-                                contact: lead["contactName"] ?? "N/A",
-                                tag: lead["leadSource"] ?? "Cold Call",
+                ? Center(child: Text("Error: $errorMessage"))
+                : RefreshIndicator(
+                    onRefresh: fetchLeads,
+                    child: ListView.builder(
+                      itemCount: leads.length,
+                      itemBuilder: (context, index) {
+                        final lead = leads[index];
+                        return InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    LeadViewPage(leadData: lead),
                               ),
                             );
                           },
-                        ),
-                      ),
+                          child: LeadCard(
+                            name: lead["fullName"] ?? "Unknown",
+                            company: lead["companyName"] ?? "N/A",
+                            email: lead["email"] ?? "N/A",
+                            contact: lead["contactName"] ?? "N/A",
+                            tag: lead["leadSource"] ?? "Cold Call",
+                          ),
+                        );
+                      },
+                    ),
+                  ),
           ),
         ],
       ),
@@ -205,9 +208,7 @@ class _LeadListPageState extends State<LeadListPage> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const AddLeadPage(),
-            ),
+            MaterialPageRoute(builder: (context) => const AddLeadPage()),
           );
         },
         backgroundColor: Colors.blue,
@@ -253,14 +254,14 @@ class LeadCard extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-  decoration: BoxDecoration(
-    color: Colors.white,
-    borderRadius: BorderRadius.circular(12),
-    border: Border.all(
-      color: Colors.grey.shade300, // ✅ Light gray border
-      width: 1,
-    ),
-  ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.grey.shade300, // ✅ Light gray border
+          width: 1,
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(14.0),
         child: Row(
@@ -270,46 +271,80 @@ class LeadCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(name,
-                      style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.business,
-                          size: 16, color: Colors.deepPurple),
+                      const Icon(
+                        Icons.business,
+                        size: 16,
+                        color: Colors.deepPurple,
+                      ),
                       const SizedBox(width: 6),
-                      Expanded(child: Text(company,style: TextStyle(color: Colors.grey[600]),)),
+                      Expanded(
+                        child: Text(
+                          company,
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.email,
-                          size: 16, color: Colors.deepPurple),
+                      const Icon(
+                        Icons.email,
+                        size: 16,
+                        color: Colors.deepPurple,
+                      ),
                       const SizedBox(width: 6),
-                      Expanded(child: Text(email,style: TextStyle(color: Colors.grey[600]))),
+                      Expanded(
+                        child: Text(
+                          email,
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.person,
-                          size: 16, color: Colors.deepPurple),
+                      const Icon(
+                        Icons.person,
+                        size: 16,
+                        color: Colors.deepPurple,
+                      ),
                       const SizedBox(width: 6),
-                      Expanded(child: Text(contact,style: TextStyle(color: Colors.grey[600]))),
+                      Expanded(
+                        child: Text(
+                          contact,
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 6),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
-                      color: tagColor.withOpacity(0.1), // light pastel background
+                      color: tagColor.withOpacity(
+                        0.1,
+                      ), // light pastel background
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: Text(tag,
-                        style: TextStyle(color: tagColor, fontSize: 12)),
+                    child: Text(
+                      tag,
+                      style: TextStyle(color: tagColor, fontSize: 12),
+                    ),
                   ),
                 ],
               ),
@@ -320,11 +355,14 @@ class LeadCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.blue.withOpacity(0.1),
                 shape: BoxShape.rectangle,
-                 borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: IconButton(
-                icon: const Icon(Icons.phone_outlined,
-                    color: Colors.blueAccent, size: 24),
+                icon: const Icon(
+                  Icons.phone_outlined,
+                  color: Colors.blueAccent,
+                  size: 24,
+                ),
                 onPressed: () {
                   // Add your call action here
                 },

@@ -1,5 +1,5 @@
-import 'package:crm_mobile/screens/contacts/sortby.dart';
-import 'package:crm_mobile/services/api_service.dart';
+import 'package:crmMobileUi/screens/contacts/sortby.dart';
+import 'package:crmMobileUi/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 
