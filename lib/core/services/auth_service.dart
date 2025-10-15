@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthService extends ChangeNotifier {
-  late final SingleAccountPca? _pca;
+  SingleAccountPca? _pca;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   static const String _tokenKey = "auth_token";
   // Add this getter to expose user information
@@ -63,13 +63,6 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // Future<void> logout() async {
-  //   try {
-  //     await _pca.signOut();
-  //   } catch (e) {
-  //     print("Logout error: $e");
-  //   }
-  // }
   Future<void> logout() async {
     if (_pca == null) return;
     try {
