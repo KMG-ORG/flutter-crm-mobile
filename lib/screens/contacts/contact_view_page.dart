@@ -172,7 +172,7 @@ class _ContactDetailsPageState extends State<ContactDetailsPage> {
                 ] else if (selectedTabIndex == 1) ...[
                   _buildExpandableTile("Emails Section", false),
                 ] else if (selectedTabIndex == 2) ...[
-                  _buildExpandableTile("Details Section", false),
+                  _buildContactInfoSection(),
                 ],
               ],
             ),
@@ -250,6 +250,61 @@ class _ContactDetailsPageState extends State<ContactDetailsPage> {
               const Icon(Icons.add, color: Color(0xFF8E2DE2), size: 20),
           ],
         ),
+      ),
+    );
+  }
+
+  // --- Contact Info Section (Details Tab Content) ---
+  Widget _buildContactInfoSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 12),
+        const Text(
+          "Contact Information",
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+
+        _buildInfoRow("Contact Owner", "James Merced"),
+        _buildInfoRow("Lead Source", "-None-"),
+        _buildInfoRow("Contact Name", "Sam Disuja"),
+        _buildInfoRow("Account Name", "BareMinimum Pvt Ltd"),
+        _buildInfoRow("Email", "maloonpvt@gmail.com"),
+        _buildInfoRow("Title", "Mr."),
+        _buildInfoRow("Department", "Sales"),
+        _buildInfoRow("Assistant", "James Merced"),
+        _buildInfoRow("Reports To", "James Merced"),
+
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140,
+            child: Text(
+              label,
+              style: const TextStyle(color: Colors.black54, fontSize: 14),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
