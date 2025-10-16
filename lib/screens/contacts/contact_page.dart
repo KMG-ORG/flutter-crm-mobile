@@ -1,7 +1,7 @@
-import 'package:crm_mobile/screens/contacts/sortby.dart';
-import 'package:crm_mobile/services/api_service.dart';
+import 'package:crm_mobile/screens/contacts/contact_view_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:crm_mobile/services/api_service.dart';
 
 class ContactsPage extends StatefulWidget {
   final VoidCallback onClose;
@@ -20,12 +20,11 @@ class _ContactsPageState extends State<ContactsPage> {
   int pageNumber = 1;
   final int pageSize = 20;
   int totalCount = 0;
-
   final ScrollController _scrollController = ScrollController();
 
-  bool showSearchBar = false; // 🔍 search bar toggle
+  bool showSearchBar = false;
   final TextEditingController _searchController = TextEditingController();
-  String? selectedOption; // For Options dropdown
+  String? selectedOption;
 
   @override
   void initState() {
@@ -41,7 +40,6 @@ class _ContactsPageState extends State<ContactsPage> {
   }
 
   void _onScroll() {
-    // Trigger only if near bottom, not already loading, and more data exists
     if (_scrollController.position.pixels >=
             _scrollController.position.maxScrollExtent - 200 &&
         !isLoadingMore &&
@@ -54,13 +52,9 @@ class _ContactsPageState extends State<ContactsPage> {
   Future<void> fetchContacts(int page, [String? search]) async {
     try {
       if (page == 1) {
-        setState(() {
-          isLoading = true;
-        });
+        setState(() => isLoading = true);
       } else {
-        setState(() {
-          isLoadingMore = true;
-        });
+        setState(() => isLoadingMore = true);
       }
 
       final apiService = ApiService();
@@ -76,24 +70,22 @@ class _ContactsPageState extends State<ContactsPage> {
             : null,
       };
 
-      // final response = await apiService.getAccounts(
-      //   payload,
-      // ); // 🔹 Adjust API call
       final response =
           await apiService.getContacts(payload) as Map<String, dynamic>;
 
-      final List<Map<String, dynamic>> newAccounts =
+      final List<Map<String, dynamic>> newContacts =
           (response['data'] as List<dynamic>? ?? [])
               .map((item) => Map<String, dynamic>.from(item as Map))
               .toList();
 
       totalCount =
           int.tryParse(response['totalCount']?.toString() ?? '') ?? totalCount;
+
       setState(() {
         if (page == 1) {
-          contacts = newAccounts;
+          contacts = newContacts;
         } else {
-          contacts.addAll(newAccounts);
+          contacts.addAll(newContacts);
         }
 
         hasMore = contacts.length < totalCount;
@@ -104,26 +96,17 @@ class _ContactsPageState extends State<ContactsPage> {
       setState(() {
         isLoading = false;
         isLoadingMore = false;
+        errorMessage = e.toString();
       });
     }
   }
 
   void onSearchPressed() {
     if (showSearchBar) {
-      // when already visible → perform search
       fetchContacts(1, _searchController.text.trim());
     } else {
-      // show the search bar
-      setState(() {
-        showSearchBar = true;
-      });
+      setState(() => showSearchBar = true);
     }
-  }
-
-  Future<void> _refreshContacts() async {
-    pageNumber = 1;
-    hasMore = true;
-    await fetchContacts(pageNumber);
   }
 
   void onCancelSearch() {
@@ -131,7 +114,13 @@ class _ContactsPageState extends State<ContactsPage> {
       showSearchBar = false;
       _searchController.clear();
     });
-    fetchContacts(1); // reload all data
+    fetchContacts(1);
+  }
+
+  Future<void> _refreshContacts() async {
+    pageNumber = 1;
+    hasMore = true;
+    await fetchContacts(pageNumber);
   }
 
   @override
@@ -144,9 +133,9 @@ class _ContactsPageState extends State<ContactsPage> {
             ? TextField(
                 controller: _searchController,
                 autofocus: true,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: "Search contacts...",
-                  hintStyle: const TextStyle(color: Colors.white70),
+                  hintStyle: TextStyle(color: Colors.white70),
                   border: InputBorder.none,
                 ),
                 style: const TextStyle(color: Colors.white),
@@ -177,14 +166,6 @@ class _ContactsPageState extends State<ContactsPage> {
             IconButton(
               icon: const Icon(Icons.close, color: Colors.white),
               onPressed: onCancelSearch,
-            )
-          else
-            Container(
-              margin: const EdgeInsets.only(right: 12),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(8),
-              ),
             ),
         ],
         flexibleSpace: Container(
@@ -218,58 +199,44 @@ class _ContactsPageState extends State<ContactsPage> {
                       child: PopupMenuButton<String>(
                         color: Colors.white,
                         offset: const Offset(0, 30),
-                        onSelected: (value) {
-                          setState(() {
-                            selectedOption = value;
-                          });
-                        },
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
+                        onSelected: (value) =>
+                            setState(() => selectedOption = value),
+                        itemBuilder: (context) => const [
+                          PopupMenuItem(
                             value: "Manage Tags",
                             child: Text(
                               "Manage Tags",
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: "Mass Email",
                             child: Text(
                               "Mass Email",
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: "Export Contacts",
                             child: Text(
                               "Export Contacts",
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
                         ],
                         child: Row(
-                          children: [
+                          children: const [
                             Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0,
-                              ),
+                              padding: EdgeInsets.symmetric(horizontal: 8.0),
                               child: Text(
                                 "Options",
                                 style: TextStyle(
-                                  color: Colors.purple[800],
+                                  color: Colors.purple,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),
-                            const Icon(
+                            Icon(
                               Icons.keyboard_arrow_down,
                               color: Colors.purple,
                             ),
@@ -286,9 +253,7 @@ class _ContactsPageState extends State<ContactsPage> {
                       padding: const EdgeInsets.all(6),
                       child: GestureDetector(
                         onTap: () {
-                          // Navigator.of(context).push(
-                          //   MaterialPageRoute(builder: (_) => SortFilterPage()),
-                          // );
+                          // Open filter
                         },
                         child: const Icon(
                           Icons.filter_list,
@@ -312,8 +277,8 @@ class _ContactsPageState extends State<ContactsPage> {
                 : RefreshIndicator(
                     onRefresh: _refreshContacts,
                     child: ListView.builder(
-                      itemCount: contacts.length + (isLoadingMore ? 1 : 0),
                       controller: _scrollController,
+                      itemCount: contacts.length + (isLoadingMore ? 1 : 0),
                       itemBuilder: (context, index) {
                         if (index < contacts.length) {
                           final contact = contacts[index];
@@ -345,27 +310,20 @@ class _ContactsPageState extends State<ContactsPage> {
           ),
         ),
         child: SpeedDial(
-          //icon: Icons.add,
           child: const Icon(Icons.add, color: Colors.white),
           activeChild: const Icon(Icons.close, color: Colors.white),
-          activeIcon: Icons.close,
-          backgroundColor: Colors.transparent, // Let gradient show
-          elevation: 0, // remove shadow for clean gradient
-
+          backgroundColor: Colors.transparent,
+          elevation: 0,
           children: [
             SpeedDialChild(
               child: const Icon(Icons.person),
               label: 'Create Accounts',
-              onTap: () {
-                // Your create accounts logic
-              },
+              onTap: () {},
             ),
             SpeedDialChild(
               child: const Icon(Icons.download),
               label: 'Import Accounts',
-              onTap: () {
-                // Your import accounts logic
-              },
+              onTap: () {},
             ),
           ],
         ),
@@ -379,79 +337,94 @@ class _ContactsPageState extends State<ContactsPage> {
     required String email,
     required String phone,
   }) {
-    return Card(
-      color: Colors.white,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Stack(
-          alignment: Alignment.centerRight,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                if (category.isNotEmpty)
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.apartment_outlined,
-                        size: 16,
-                        color: Colors.purple,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        category,
-                        style: const TextStyle(color: Colors.black54),
-                      ),
-                    ],
-                  ),
-                if (email.isNotEmpty)
-                  Row(
-                    children: [
-                      const Icon(Icons.email, size: 16, color: Colors.purple),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          email,
-                          style: const TextStyle(color: Colors.black54),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                Row(
-                  children: [
-                    const Icon(Icons.phone, size: 16, color: Colors.purple),
-                    const SizedBox(width: 6),
-                    Text(phone),
-                  ],
-                ),
-              ],
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ContactDetailsPage(
+              // name: name,
+              // email: email,
+              // phone: phone,
+              // category: category,
             ),
-            Positioned(
-              right: 0,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.phone, color: Colors.blue),
-                  onPressed: () {},
+          ),
+        );
+      },
+      child: Card(
+        color: Colors.white,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        elevation: 2,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Stack(
+            alignment: Alignment.centerRight,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  if (category.isNotEmpty)
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.apartment_outlined,
+                          size: 16,
+                          color: Colors.purple,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          category,
+                          style: const TextStyle(color: Colors.black54),
+                        ),
+                      ],
+                    ),
+                  if (email.isNotEmpty)
+                    Row(
+                      children: [
+                        const Icon(Icons.email, size: 16, color: Colors.purple),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            email,
+                            style: const TextStyle(color: Colors.black54),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  Row(
+                    children: [
+                      const Icon(Icons.phone, size: 16, color: Colors.purple),
+                      const SizedBox(width: 6),
+                      Text(phone),
+                    ],
+                  ),
+                ],
+              ),
+              Positioned(
+                right: 0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.phone, color: Colors.blue),
+                    onPressed: () {},
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
