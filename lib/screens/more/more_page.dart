@@ -1,4 +1,5 @@
 import 'package:crm_mobile/screens/opportunity/opportunity_page.dart';
+import 'package:crm_mobile/screens/product/product_page.dart';
 import 'package:crm_mobile/screens/sales/sales_page.dart';
 import 'package:crm_mobile/screens/campaigns/campaign_page.dart';
 import 'package:crm_mobile/screens/ticket/ticket_page.dart';
@@ -186,6 +187,16 @@ class MorePage extends StatelessWidget {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => OpportunityPage(
+                                  //onClose: () => Navigator.pop(context),
+                                ),
+                              ),
+                            );
+                          }
+                          if (item["label"] == "Products") {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ProductsPage(
                                   //onClose: () => Navigator.pop(context),
                                 ),
                               ),
