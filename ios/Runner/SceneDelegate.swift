@@ -1,6 +1,7 @@
 import UIKit
+import Flutter
 
-@objc(SceneDelegate) // 👈 VERY IMPORTANT
+@objc(SceneDelegate) // 👈 Ensures Objective-C can find it
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
@@ -11,18 +12,21 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         options connectionOptions: UIScene.ConnectionOptions
     ) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
-        let window = UIWindow(windowScene: windowScene)
-        self.window = window
 
-        // This line ensures Flutter view is shown
-        let flutterViewController = UIApplication.shared.delegate?.window??.rootViewController
+        // Flutter engine and view controller
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        let flutterViewController = appDelegate.window?.rootViewController as! FlutterViewController
+
+        // Setup main window
+        let window = UIWindow(windowScene: windowScene)
         window.rootViewController = flutterViewController
+        self.window = window
         window.makeKeyAndVisible()
     }
 
-    func sceneDidDisconnect(_ scene: UIScene) {}
-    func sceneDidBecomeActive(_ scene: UIScene) {}
-    func sceneWillResignActive(_ scene: UIScene) {}
-    func sceneWillEnterForeground(_ scene: UIScene) {}
-    func sceneDidEnterBackground(_ scene: UIScene) {}
+    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        // MSAL redirect handling (important for auth)
+        guard let url = URLContexts.first?.url else { return }
+        MSALPublicClientApplication.handleMSALResponse(url)
+    }
 }
