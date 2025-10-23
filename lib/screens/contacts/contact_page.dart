@@ -1,7 +1,7 @@
-import 'package:crm_mobile/screens/contacts/contact_view_page.dart';
+import 'package:crmMobileUi/screens/contacts/contact_view_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:crm_mobile/services/api_service.dart';
+import 'package:crmMobileUi/services/api_service.dart';
 
 class ContactsPage extends StatefulWidget {
   final VoidCallback onClose;

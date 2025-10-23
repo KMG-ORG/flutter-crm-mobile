@@ -1,8 +1,8 @@
-import 'package:crm_mobile/screens/opportunity/opportunity_page.dart';
-import 'package:crm_mobile/screens/product/product_page.dart';
-import 'package:crm_mobile/screens/sales/sales_page.dart';
-import 'package:crm_mobile/screens/campaigns/campaign_page.dart';
-import 'package:crm_mobile/screens/ticket/ticket_page.dart';
+import 'package:crmMobileUi/screens/opportunity/opportunity_page.dart';
+import 'package:crmMobileUi/screens/product/product_page.dart';
+import 'package:crmMobileUi/screens/sales/sales_page.dart';
+import 'package:crmMobileUi/screens/campaigns/campaign_page.dart';
+import 'package:crmMobileUi/screens/ticket/ticket_page.dart';
 import 'package:flutter/material.dart';
 
 class MorePage extends StatelessWidget {

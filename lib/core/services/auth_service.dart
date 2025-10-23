@@ -46,6 +46,9 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<String?> login() async {
+    if (_pca == null) {
+      throw Exception("MSAL PublicClientApplication not initialized");
+    }
     try {
       // await _pca.signOut();
       // final currentAccount = await _pca.getCurrentAccount();
@@ -55,7 +58,11 @@ class AuthService extends ChangeNotifier {
 
       // await _pca.logout();
       // await _pca.removeAccount(currentAccount);
-      final result = await _pca?.acquireToken(scopes: ['User.Read']);
+      final result = await _pca?.acquireToken(
+        scopes: [dotenv.env['AZURE_SCOPES']!],
+      );
+      print("Access token: ${result?.accessToken}");
+
       return result?.accessToken;
     } catch (e) {
       print("Login error: $e");
