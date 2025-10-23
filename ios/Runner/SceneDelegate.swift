@@ -1,7 +1,7 @@
 import UIKit
 import Flutter
 
-@objc(SceneDelegate) // 👈 Ensures Objective-C can find it
+@objc(SceneDelegate)
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
@@ -13,11 +13,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     ) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
 
-        // Flutter engine and view controller
+        // Use existing Flutter root view
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         let flutterViewController = appDelegate.window?.rootViewController as! FlutterViewController
 
-        // Setup main window
         let window = UIWindow(windowScene: windowScene)
         window.rootViewController = flutterViewController
         self.window = window
@@ -25,7 +24,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
-        // MSAL redirect handling (important for auth)
+        // MSAL / deep link handling
         guard let url = URLContexts.first?.url else { return }
         MSALPublicClientApplication.handleMSALResponse(url)
     }
