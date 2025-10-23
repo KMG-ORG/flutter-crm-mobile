@@ -45,19 +45,43 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+	<!-- MSAL Redirect URI Configuration -->
 	<key>CFBundleURLTypes</key>
 	<array>
-	<dict>
-		<key>CFBundleURLSchemes</key>
-		<array>
-		<string>msalbeb2c846-d811-4014-9479-00c6361b18e2</string>
-		</array>
-	</dict>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>msalbeb2c846-d811-4014-9479-00c6361b18e2</string> 
+			</array>
+		</dict>
 	</array>
 
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
-	<string>msauth</string>
+		<string>msauth</string>
 	</array>
+
+	<!-- ✅ Correctly placed Scene Manifest -->
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<true/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneConfigurationName</key>
+					<string>Default Configuration</string>
+					<key>UISceneDelegateClassName</key>
+					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
+					<key>UISceneStoryboardFile</key>
+					<string>Main</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
+
 </dict>
 </plist>
