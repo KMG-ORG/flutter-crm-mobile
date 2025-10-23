@@ -102,37 +102,180 @@ class _LeadListPageState extends State<LeadListPage> {
   List<Map<String, dynamic>> leads = [];
   bool isLoading = true;
   String? errorMessage;
+  bool isLoadingMore = false;
+  final int pageSize = 20;
+  int totalCount = 0;
+  int pageNumber = 1;
+  bool hasMore = true;
+  final ScrollController _scrollController = ScrollController();
+
+  bool showSearchBar = false;
+  final TextEditingController _searchController = TextEditingController();
+ 
+
+@override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
     super.initState();
-    fetchLeads();
+    fetchLeads(pageNumber);
+    _scrollController.addListener(_onScroll);
   }
 
-  Future<void> fetchLeads() async {
-    try {
-      final apiService = ApiService();
-      final data = await apiService.getLeads();
-      setState(() {
-        leads = data;
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        errorMessage = e.toString();
-        isLoading = false;
-      });
+void _onScroll() {
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200 &&
+        !isLoadingMore &&
+        hasMore) {
+      pageNumber++;
+      fetchLeads(pageNumber);
     }
+  }
+
+ Future<void> fetchLeads(int page, [String? search]) async {
+  try {
+    if (page == 1) {
+      setState(() => isLoading = true);
+    } else {
+      setState(() => isLoadingMore = true);
+    }
+
+    final apiService = ApiService();
+
+    final payload = {
+      'pageSize': pageSize,
+      'pageNumber': page,
+      'columnName': 'UpdatedDateTime',
+      'orderType': 'desc',
+      'filterJson': null,
+      'searchText': (search != null && search.trim().isNotEmpty)
+          ? search.trim()
+          : null,
+    };
+
+    // ✅ Replace with your actual API function for leads
+    final response =
+        await apiService.getLeads(payload) as Map<String, dynamic>;
+
+    final List<Map<String, dynamic>> newLeads =
+        (response['data'] as List<dynamic>? ?? [])
+            .map((item) => Map<String, dynamic>.from(item as Map))
+            .toList();
+
+    totalCount =
+        int.tryParse(response['totalCount']?.toString() ?? '') ?? totalCount;
+
+    setState(() {
+      if (page == 1) {
+        leads = newLeads;
+      } else {
+        leads.addAll(newLeads);
+      }
+
+      hasMore = leads.length < totalCount;
+      isLoading = false;
+      isLoadingMore = false;
+    });
+  } catch (e) {
+    setState(() {
+      isLoading = false;
+      isLoadingMore = false;
+      errorMessage = e.toString();
+    });
+  }
+}
+
+
+  void onSearchPressed() {
+    setState(() {
+      showSearchBar = !showSearchBar;
+    });
+  }
+
+  void onCancelSearch() {
+    setState(() {
+      showSearchBar = false;
+      _searchController.clear();
+      fetchLeads(pageNumber);
+    });
+  }
+
+  void onBackPressed() {
+    Navigator.pop(context);
+  }
+
+  Future<void> _refreshLeads() async {
+    pageNumber = 1;
+    hasMore = true;
+    await fetchLeads(pageNumber);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-
+      appBar: AppBar(
+        elevation: 0,
+        title: showSearchBar
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                textInputAction: TextInputAction.search,
+                decoration: InputDecoration(
+                  hintText: "Search Leads...",
+                  hintStyle: const TextStyle(color: Colors.white70),
+                  border: InputBorder.none,
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.clear, color: Colors.white70),
+                    onPressed: () => _searchController.clear(),
+                  ),
+                ),
+                style: const TextStyle(color: Colors.white),
+                onSubmitted: (value) => fetchLeads(1, value),
+              )
+            : const Text(
+                "Leads",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w300,
+                  color: Colors.white,
+                ),
+              ),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: onBackPressed,
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              showSearchBar ? Icons.check : Icons.search,
+              color: Colors.white,
+            ),
+            onPressed: onSearchPressed,
+          ),
+          if (showSearchBar)
+            IconButton(
+              icon: const Icon(Icons.close, color: Colors.white),
+              onPressed: onCancelSearch,
+            ),
+        ],
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF5733C7), Color(0xFF9A24C3)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+      ),
       body: Column(
         children: [
-          // 🔹 Top Filter Row
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Row(
@@ -165,45 +308,42 @@ class _LeadListPageState extends State<LeadListPage> {
               ],
             ),
           ),
-
-          // 🔹 Lead List
           Expanded(
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : errorMessage != null
-                ? Center(child: Text("Error: $errorMessage"))
-                : RefreshIndicator(
-                    onRefresh: fetchLeads,
-                    child: ListView.builder(
-                      itemCount: leads.length,
-                      itemBuilder: (context, index) {
-                        final lead = leads[index];
-                        return InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    LeadViewPage(leadData: lead),
+                    ? Center(child: Text("Error: $errorMessage"))
+                    : RefreshIndicator(
+                        onRefresh: _refreshLeads,
+                        child: ListView.builder(
+                          itemCount: leads.length,
+                          itemBuilder: (context, index) {
+                            final lead = leads[index];
+                            return InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => LeadViewPage(
+                                      leadData: lead,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: LeadCard(
+                                name: lead["fullName"] ?? "Unknown",
+                                company: lead["companyName"] ?? "N/A",
+                                email: lead["email"] ?? "N/A",
+                                contact: lead["contactName"] ?? "N/A",
+                                tag: lead["leadSource"] ?? "Cold Call",
                               ),
                             );
                           },
-                          child: LeadCard(
-                            name: lead["fullName"] ?? "Unknown",
-                            company: lead["companyName"] ?? "N/A",
-                            email: lead["email"] ?? "N/A",
-                            contact: lead["contactName"] ?? "N/A",
-                            tag: lead["leadSource"] ?? "Cold Call",
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+                        ),
+                      ),
           ),
         ],
       ),
-
-      // 🔹 Floating Action Button
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
@@ -217,6 +357,7 @@ class _LeadListPageState extends State<LeadListPage> {
     );
   }
 }
+
 
 // 🔹 Lead Card Widget
 class LeadCard extends StatelessWidget {

@@ -41,7 +41,7 @@ class ApiService {
   //   );
   // }
 
-  Future<List<Map<String, dynamic>>> getLeads() async {
+  Future<Map<String, dynamic>> getLeads(Map<String, dynamic> payload) async {
     // final token = await _storage.read(key: "access_token");
     final token = await _storage.read(key: _tokenKey);
     final payload = {
@@ -65,8 +65,11 @@ class ApiService {
 
     if (response.statusCode == 200) {
       final body = jsonDecode(response.body);
-      final List leads = body['leads']; // Graph API returns { "value": [...] }
-      return leads.map((e) => e as Map<String, dynamic>).toList();
+      // final List leads = body['leads']; // Graph API returns { "value": [...] }
+      return {
+        'data': List<Map<String, dynamic>>.from(body['leads'] ?? []),
+        'totalCount': body['totalCount'] ?? 0,
+      };
     } else {
       throw Exception("Failed to fetch leads: ${response.body}");
     }
