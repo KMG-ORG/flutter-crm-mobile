@@ -1,5 +1,6 @@
 import UIKit
 
+@objc(SceneDelegate) // 👈 VERY IMPORTANT
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
@@ -10,14 +11,18 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         options connectionOptions: UIScene.ConnectionOptions
     ) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
-        window = UIWindow(windowScene: windowScene)
-        window?.rootViewController = UIStoryboard(name: "Main", bundle: nil).instantiateInitialViewController()
-        window?.makeKeyAndVisible()
+        let window = UIWindow(windowScene: windowScene)
+        self.window = window
+
+        // This line ensures Flutter view is shown
+        let flutterViewController = UIApplication.shared.delegate?.window??.rootViewController
+        window.rootViewController = flutterViewController
+        window.makeKeyAndVisible()
     }
 
-    func sceneDidDisconnect(_ scene: UIScene) { }
-    func sceneDidBecomeActive(_ scene: UIScene) { }
-    func sceneWillResignActive(_ scene: UIScene) { }
-    func sceneWillEnterForeground(_ scene: UIScene) { }
-    func sceneDidEnterBackground(_ scene: UIScene) { }
+    func sceneDidDisconnect(_ scene: UIScene) {}
+    func sceneDidBecomeActive(_ scene: UIScene) {}
+    func sceneWillResignActive(_ scene: UIScene) {}
+    func sceneWillEnterForeground(_ scene: UIScene) {}
+    func sceneDidEnterBackground(_ scene: UIScene) {}
 }
