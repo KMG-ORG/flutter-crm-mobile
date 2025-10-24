@@ -34,23 +34,38 @@ class AuthService extends ChangeNotifier {
   //   );
   // }
   Future<void> init() async {
-    if (_pca != null) return; // Already initialized, skip
-    _pca = await SingleAccountPca.create(
-      clientId: dotenv.env['AZURE_CLIENT_ID']!,
-      androidConfig: AndroidConfig(
-        configFilePath: 'assets/msal_config.json',
-        redirectUri: dotenv.env['REDIRECT_URI']!,
-      ),
-      appleConfig: AppleConfig(authority: dotenv.env['REDIRECT_URI']!),
-    );
+    // if (_pca != null) return; // Already initialized, skip
+    // _pca = await SingleAccountPca.create(
+    //   clientId: dotenv.env['AZURE_CLIENT_ID']!,
+    //   androidConfig: AndroidConfig(
+    //     configFilePath: 'assets/msal_config.json',
+    //     redirectUri: dotenv.env['REDIRECT_URI']!,
+    //   ),
+    //   appleConfig: AppleConfig(authority: dotenv.env['REDIRECT_URI']!),
+    // );
+
+    try {
+      await SingleAccountPca.create(
+        clientId: dotenv.env['AZURE_CLIENT_ID']!,
+        androidConfig: AndroidConfig(
+          configFilePath: 'assets/msal_config.json',
+          redirectUri: dotenv.env['REDIRECT_URI']!,
+        ),
+        appleConfig: AppleConfig(authority: dotenv.env['REDIRECT_URI']!),
+      );
+    } catch (e) {
+      print('MSAL init failed: $e');
+      // fallback: continue showing login page
+    }
   }
 
   Future<String?> login() async {
+    print("login token 63 : $_pca");
     if (_pca == null) {
       throw Exception("MSAL PublicClientApplication not initialized");
     }
     try {
-      // await _pca.signOut();
+      await _pca?.signOut();
       // final currentAccount = await _pca.getCurrentAccount();
       //       if (currentAccount != null) {
       //         await _pca.removeAccount(currentAccount);

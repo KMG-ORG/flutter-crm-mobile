@@ -22,7 +22,12 @@ class _LoginPageState extends State<LoginPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final authService = context.read<AuthService>();
       await authService.init();
-      if (mounted) setState(() => _initialized = true);
+      if (mounted) {
+        setState(() {
+          _initialized = true;
+          _loading = false;
+        });
+      }
     });
   }
 
@@ -70,7 +75,7 @@ class _LoginPageState extends State<LoginPage> {
                     gradient: LinearGradient(
                       colors: [
                         Colors.white.withOpacity(0.15),
-                        Colors.white.withOpacity(0.05)
+                        Colors.white.withOpacity(0.05),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -85,8 +90,10 @@ class _LoginPageState extends State<LoginPage> {
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 20,
+                ),
                 child: !_initialized
                     ? const CircularProgressIndicator(color: Colors.white)
                     : Column(
@@ -201,7 +208,6 @@ class _LoginPageState extends State<LoginPage> {
                           //     ),
                           //   ),
                           // ),
-
                           const SizedBox(height: 20),
 
                           // 🪟 Microsoft Login
@@ -242,15 +248,16 @@ class _LoginPageState extends State<LoginPage> {
                                       final token = await authService.login();
                                       setState(() => _loading = false);
 
-                                      if (token != null &&
-                                          token.isNotEmpty) {
+                                      if (token != null && token.isNotEmpty) {
                                         _saveToken(token);
                                       } else {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
                                           const SnackBar(
                                             content: Text(
-                                                "Login failed. Try again."),
+                                              "Login failed. Try again.",
+                                            ),
                                           ),
                                         );
                                       }
@@ -286,9 +293,17 @@ class _WaveClipper extends CustomClipper<Path> {
     final path = Path();
     path.lineTo(0, size.height * 0.4);
     path.quadraticBezierTo(
-        size.width * 0.25, size.height * 0.55, size.width * 0.5, size.height * 0.4);
+      size.width * 0.25,
+      size.height * 0.55,
+      size.width * 0.5,
+      size.height * 0.4,
+    );
     path.quadraticBezierTo(
-        size.width * 0.75, size.height * 0.25, size.width, size.height * 0.4);
+      size.width * 0.75,
+      size.height * 0.25,
+      size.width,
+      size.height * 0.4,
+    );
     path.lineTo(size.width, size.height);
     path.lineTo(0, size.height);
     path.close();
