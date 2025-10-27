@@ -75,6 +75,103 @@ class ApiService {
     }
   }
 
+  Future<Map<String, List<dynamic>>> getFilteredMasterData() async {
+    try {
+      final token = await _storage.read(key: _tokenKey);
+
+      final payload = {
+        "type": [
+          "RevenueType",
+          "LeadSource",
+          "Industry",
+          "AccountType",
+          "TimeZone",
+          "Salutation",
+        ]
+      };
+
+      final response = await http.post(
+        Uri.parse("$baseUrl/Master/GetFilteredGenericMasterTable"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+          "X-Correlation-Id": generateGUID(),
+          "X-Request-Id": generateGUID(),
+        },
+        body: jsonEncode(payload),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> body = jsonDecode(response.body);
+
+        final Map<String, List<dynamic>> result = {};
+        for (var item in body) {
+          final type = item["type"];
+          final data = item["data"] ?? [];
+          if (type != null && data is List) {
+            result[type] = List<Map<String, dynamic>>.from(data);
+          }
+        }
+        return result;
+      } else {
+        throw Exception("Failed to fetch master data: ${response.body}");
+      }
+    } catch (e) {
+      throw Exception("Error fetching master data: $e");
+    }
+  }
+
+  // 🔹 CREATE LEAD
+  Future<Map<String, dynamic>> createLead(Map<String, dynamic> leadData) async {
+  try {
+    final token = await _storage.read(key: _tokenKey);
+
+    final response = await http.post(
+      Uri.parse("$baseUrl/Lead/CreateLead"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+        "X-Correlation-Id": generateGUID(),
+        "X-Request-Id": generateGUID(),
+      },
+      body: jsonEncode(leadData),
+    );
+
+    // 🔹 Log response for debugging
+    print("Response Status: ${response.statusCode}");
+    print("Response Body: ${response.body}");
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final bodyText = response.body.trim();
+
+      // ✅ If backend returns GUID or plain text instead of JSON
+      if (!bodyText.startsWith("{") && !bodyText.startsWith("[")) {
+        return {
+          "success": true,
+          "message": "Lead created successfully",
+          "leadId": bodyText,
+        };
+      }
+
+      // ✅ Otherwise, parse JSON
+      final body = jsonDecode(bodyText);
+      return {
+        "success": true,
+        "message": body["message"] ?? "Lead created successfully",
+        "data": body,
+      };
+    } else {
+      throw Exception("Failed to create lead: ${response.body}");
+    }
+  } catch (e) {
+    throw Exception("Error creating lead: $e");
+  }
+}
+
+
+
+
+
   Future<Map<String, dynamic>> getContacts(Map<String, dynamic> payload) async {
     final token = await _storage.read(key: _tokenKey);
     final response = await http.post(

@@ -90,6 +90,7 @@ import 'package:crmMobileUi/features/leads/add_lead_page.dart';
 import 'package:crmMobileUi/features/leads/lead_view_page.dart';
 import 'package:crmMobileUi/services/api_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 
 class LeadListPage extends StatefulWidget {
   const LeadListPage({super.key});
@@ -344,15 +345,36 @@ void _onScroll() {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
+      floatingActionButton: Container(
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            colors: [Color(0xFF5733C7), Color(0xFF9A24C3)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: SpeedDial(
+          child: const Icon(Icons.add, color: Colors.white),
+          activeChild: const Icon(Icons.close, color: Colors.white),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          children: [
+            SpeedDialChild(
+              child: const Icon(Icons.person),
+              label: 'Create Leads',
+              onTap: () {Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const AddLeadPage()),
-          );
-        },
-        backgroundColor: Colors.blue,
-        child: const Icon(Icons.add),
+          );},
+            ),
+            SpeedDialChild(
+              child: const Icon(Icons.download),
+              label: 'Import Leads',
+              onTap: () {},
+            ),
+          ],
+        ),
       ),
     );
   }
