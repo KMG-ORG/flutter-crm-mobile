@@ -1,11 +1,13 @@
 import 'package:crm_mobile/screens/contacts/contact_view_page.dart';
+import 'package:crm_mobile/screens/contacts/sortby.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:crm_mobile/services/api_service.dart';
 
 class ContactsPage extends StatefulWidget {
   final VoidCallback onClose;
-  const ContactsPage({super.key, required this.onClose});
+  final List<Map<String, dynamic>>? filteredContacts;
+  const ContactsPage({super.key, required this.onClose, this.filteredContacts});
 
   @override
   State<ContactsPage> createState() => _ContactsPageState();
@@ -29,7 +31,16 @@ class _ContactsPageState extends State<ContactsPage> {
   @override
   void initState() {
     super.initState();
-    fetchContacts(pageNumber);
+    if (widget.filteredContacts != null &&
+        widget.filteredContacts!.isNotEmpty) {
+      // ✅ Use filtered contacts from previous screen
+      contacts = widget.filteredContacts!;
+      isLoading = false;
+    } else {
+      // ✅ Otherwise, load normally from API
+      fetchContacts(pageNumber);
+    }
+    // fetchContacts(pageNumber);
     _scrollController.addListener(_onScroll);
   }
 
@@ -45,15 +56,26 @@ class _ContactsPageState extends State<ContactsPage> {
         !isLoadingMore &&
         hasMore) {
       pageNumber++;
-      fetchContacts(pageNumber);
+      if (widget.filteredContacts != null &&
+          widget.filteredContacts!.isNotEmpty) {
+        // ✅ Use filtered contacts from previous screen
+        contacts = widget.filteredContacts!;
+        isLoading = false;
+      } else {
+        // ✅ Otherwise, load normally from API
+        fetchContacts(pageNumber);
+      }
+      // fetchContacts(pageNumber);
     }
   }
 
   Future<void> fetchContacts(int page, [String? search]) async {
     try {
       if (page == 1) {
+        if (!mounted) return;
         setState(() => isLoading = true);
       } else {
+        if (!mounted) return;
         setState(() => isLoadingMore = true);
       }
 
@@ -72,6 +94,7 @@ class _ContactsPageState extends State<ContactsPage> {
 
       final response =
           await apiService.getContacts(payload) as Map<String, dynamic>;
+      if (!mounted) return;
 
       final List<Map<String, dynamic>> newContacts =
           (response['data'] as List<dynamic>? ?? [])
@@ -93,6 +116,7 @@ class _ContactsPageState extends State<ContactsPage> {
         isLoadingMore = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         isLoading = false;
         isLoadingMore = false;
@@ -101,9 +125,46 @@ class _ContactsPageState extends State<ContactsPage> {
     }
   }
 
+  Future<void> fetchFilteredContacts(Map<String, dynamic> payload) async {
+    setState(() => isLoading = true);
+    try {
+      final apiService = ApiService();
+      final response = await apiService.getContacts(payload);
+      setState(() {
+        contacts = List<Map<String, dynamic>>.from(response['data'] ?? []);
+        hasMore = false;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+        errorMessage = e.toString();
+      });
+    }
+  }
+
   void onSearchPressed() {
     if (showSearchBar) {
-      fetchContacts(1, _searchController.text.trim());
+      final searchText = _searchController.text.trim();
+      if (widget.filteredContacts != null &&
+          widget.filteredContacts!.isNotEmpty) {
+        // 🔍 Search inside filtered contacts only
+        final filtered = widget.filteredContacts!.where((contact) {
+          final name = (contact['fullName'] ?? '').toString().toLowerCase();
+          final email = (contact['email'] ?? '').toString().toLowerCase();
+          final phone = (contact['phone'] ?? '').toString().toLowerCase();
+          return name.contains(searchText.toLowerCase()) ||
+              email.contains(searchText.toLowerCase()) ||
+              phone.contains(searchText.toLowerCase());
+        }).toList();
+
+        setState(() {
+          contacts = filtered;
+        });
+      } else {
+        // 🌐 Otherwise, search from API
+        fetchContacts(1, searchText);
+      }
     } else {
       setState(() => showSearchBar = true);
     }
@@ -114,7 +175,14 @@ class _ContactsPageState extends State<ContactsPage> {
       showSearchBar = false;
       _searchController.clear();
     });
-    fetchContacts(1);
+
+    // 🔄 Restore filtered or all contacts
+    if (widget.filteredContacts != null &&
+        widget.filteredContacts!.isNotEmpty) {
+      setState(() => contacts = widget.filteredContacts!);
+    } else {
+      fetchContacts(1);
+    }
   }
 
   Future<void> _refreshContacts() async {
@@ -152,7 +220,14 @@ class _ContactsPageState extends State<ContactsPage> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: widget.onClose,
+          //onPressed: widget.onClose,
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              widget.onClose();
+            }
+          },
         ),
         actions: [
           IconButton(
@@ -252,8 +327,16 @@ class _ContactsPageState extends State<ContactsPage> {
                       ),
                       padding: const EdgeInsets.all(6),
                       child: GestureDetector(
-                        onTap: () {
-                          // Open filter
+                        onTap: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => SortByScreen()),
+                          );
+                          if (result != null &&
+                              result['filterPayload'] != null) {
+                            final payload = result['filterPayload'];
+                            await fetchFilteredContacts(payload);
+                          }
                         },
                         child: const Icon(
                           Icons.filter_list,

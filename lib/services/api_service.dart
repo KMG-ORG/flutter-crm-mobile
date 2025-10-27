@@ -282,4 +282,31 @@ class ApiService {
       throw Exception('Failed to load Products');
     }
   }
+
+  Future<Map<String, dynamic>> getFilteredContacts(
+    Map<String, dynamic> payload,
+  ) async {
+    final token = await _storage.read(key: _tokenKey);
+    final response = await http.post(
+      Uri.parse("$baseUrl/contacts/filter"),
+      //headers: {'Content-Type': 'application/json'},
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+        "X-Correlation-Id": generateGUID(),
+        "X-Request-Id": generateGUID(),
+      },
+      body: jsonEncode(payload),
+    );
+
+    if (response.statusCode == 200) {
+      final body = jsonDecode(response.body);
+      return {
+        'data': List<Map<String, dynamic>>.from(body['contacts'] ?? []),
+        'totalCount': body['totalCount'] ?? 0,
+      };
+    } else {
+      throw Exception('Failed to load contacts');
+    }
+  }
 }
