@@ -1,19 +1,20 @@
+import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:msal_auth/msal_auth.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kIsWeb, ChangeNotifier;
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthService extends ChangeNotifier {
   SingleAccountPca? _pca;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-  static const String _tokenKey = "auth_token";
-  // Add this getter to expose user information
-  Map<String, dynamic>? get user => _user;
 
-  // Make sure you have a private field to hold user data
+  static const String _tokenKey = "auth_token";
+
   Map<String, dynamic>? _user;
   String? _token;
 
+  Map<String, dynamic>? get user => _user;
   String? get token => _token;
   bool get isAuthenticated => _token != null && _token!.isNotEmpty;
 
@@ -21,31 +22,27 @@ class AuthService extends ChangeNotifier {
     _loadToken();
   }
 
-  // Future<void> init() async {
-  //   _pca = await SingleAccountPca.create(
-  //     clientId: dotenv.env['AZURE_CLIENT_ID']!,
-  //     androidConfig: AndroidConfig(
-  //       configFilePath: 'assets/msal_config.json',
-  //       // redirectUri: 'msauth://com.yourcompany.yourapp/yourredirect',
-  //       redirectUri: dotenv.env['REDIRECT_URI']!,
-  //     ),
-
-  //     appleConfig: AppleConfig(authority: dotenv.env['REDIRECT_URI']!),
-  //   );
-  // }
   Future<void> init() async {
-    // if (_pca != null) return; // Already initialized, skip
-    // _pca = await SingleAccountPca.create(
-    //   clientId: dotenv.env['AZURE_CLIENT_ID']!,
-    //   androidConfig: AndroidConfig(
-    //     configFilePath: 'assets/msal_config.json',
-    //     redirectUri: dotenv.env['REDIRECT_URI']!,
-    //   ),
-    //   appleConfig: AppleConfig(authority: dotenv.env['REDIRECT_URI']!),
-    // );
-
     try {
-      await SingleAccountPca.create(
+      Map<String, dynamic> config = {};
+
+      // ✅ Platform-specific config loading
+      if (kIsWeb) {
+        final jsonString = await rootBundle.loadString(
+          'assets/msal_config.json',
+        );
+        config = json.decode(jsonString);
+      } else {
+        await dotenv.load(fileName: ".env");
+        config = {
+          "client_id": dotenv.env['AZURE_CLIENT_ID'],
+          "redirect_uri": dotenv.env['REDIRECT_URI'],
+          "authority": dotenv.env['AUTHORITY'],
+        };
+      }
+
+      // ✅ Assign PCA instance
+      _pca = await SingleAccountPca.create(
         clientId: dotenv.env['AZURE_CLIENT_ID']!,
         androidConfig: AndroidConfig(
           configFilePath: 'assets/msal_config.json',
@@ -53,34 +50,39 @@ class AuthService extends ChangeNotifier {
         ),
         appleConfig: AppleConfig(authority: dotenv.env['REDIRECT_URI']!),
       );
-    } catch (e) {
-      print('MSAL init failed: $e');
-      // fallback: continue showing login page
+
+      print("✅ MSAL initialized successfully");
+    } catch (e, s) {
+      print("❌ MSAL init failed: $e");
+      print(s);
     }
   }
 
   Future<String?> login() async {
-    print("login token 63 : $_pca");
     if (_pca == null) {
-      throw Exception("MSAL PublicClientApplication not initialized");
+      print("⚠️ PCA is null. Trying to initialize...");
+      await init();
+      if (_pca == null)
+        throw Exception("MSAL PublicClientApplication not initialized");
     }
-    try {
-      await _pca?.signOut();
-      // final currentAccount = await _pca.getCurrentAccount();
-      //       if (currentAccount != null) {
-      //         await _pca.removeAccount(currentAccount);
-      //       }
 
-      // await _pca.logout();
-      // await _pca.removeAccount(currentAccount);
+    try {
+      await _pca?.signOut(); // clear existing session (optional)
       final result = await _pca?.acquireToken(
-        scopes: [dotenv.env['AZURE_SCOPES']!],
+        scopes: [dotenv.env['AZURE_SCOPES'] ?? 'user.read'],
       );
-      print("Access token: ${result?.accessToken}");
+
+      if (result?.accessToken != null) {
+        _token = result!.accessToken;
+        await saveToken(_token!);
+        print("✅ Access token acquired");
+      } else {
+        print("⚠️ Access token is null");
+      }
 
       return result?.accessToken;
     } catch (e) {
-      print("Login error: $e");
+      print("❌ Login error: $e");
       return null;
     }
   }
@@ -89,16 +91,15 @@ class AuthService extends ChangeNotifier {
     if (_pca == null) return;
     try {
       await _pca!.signOut();
-      _pca = null; // allow re-initialization
-      print("Logout successful, ready for new login");
+      await clearToken();
+      print("✅ Logout successful");
     } catch (e) {
-      print("Logout error: $e");
+      print("❌ Logout error: $e");
     }
   }
 
   Future<void> _loadToken() async {
     _token = await _storage.read(key: _tokenKey);
-
     notifyListeners();
   }
 
@@ -115,7 +116,6 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> signOut() async {
-    // Implement sign out logic here, e.g., clear user data and notify listeners
     _user = null;
     notifyListeners();
   }
