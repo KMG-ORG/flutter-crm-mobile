@@ -10,7 +10,6 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
 /// ✅ External JS Interop bindings (defined in index.html)
 @JS('msalLogin')
 external JSPromise msalLogin();
@@ -80,7 +79,8 @@ class AuthService extends ChangeNotifier {
       if (token != null && token.toString().isNotEmpty) {
         await saveToken(token.toString());
         print("✅ Token saved successfully!");
-        return _token;;
+        return _token;
+        ;
       } else {
         print("⚠️ No token returned from msalLogin()");
         return null;
@@ -163,9 +163,9 @@ class AuthService extends ChangeNotifier {
     if (kIsWeb) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_tokenKey, token);
-    } else {
-      await _storage.write(key: _tokenKey, value: token);
-    }
+    } // else {
+    await _storage.write(key: _tokenKey, value: token);
+    // }
     notifyListeners();
   }
 
