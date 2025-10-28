@@ -35,5 +35,137 @@
   <body>
     <!-- <script src="flutter_bootstrap.js" async></script> -->
     <script src="main.dart.js" type="application/javascript"></script>
+
+
+<!-- ✅ MSAL.js -->
+<script type="text/javascript" src="https://alcdn.msauth.net/browser/2.37.0/js/msal-browser.min.js"></script>
+
+<!-- ✅ CRM MSAL Integration -->
+<script>
+  // Wrap everything inside an IIFE (immediately-invoked function)
+  // to ensure `msalInstance` is initialized before it's used.
+  (function () {
+    console.log("⚙️ Initializing MSAL...");
+
+    const msalConfig = {
+      auth: {
+        clientId: "beb2c846-d811-4014-9479-00c6361b18e2",
+        authority: "https://login.microsoftonline.com/9c822166-54c6-4c9c-b0eb-d390a8f54e66", // 👈 single-tenant
+        redirectUri: window.location.origin,
+      },
+      cache: {
+        cacheLocation: "localStorage",
+        storeAuthStateInCookie: false,
+      },
+    };
+
+    // ✅ Initialize MSAL
+    const msalInstance = new msal.PublicClientApplication(msalConfig);
+
+    // ✅ Handle redirect promises (MSAL housekeeping)
+    msalInstance
+      .handleRedirectPromise()
+      .then((resp) => {
+        if (resp) {
+          console.log("🔄 Redirect response:", resp);
+        }
+      })
+      .catch((e) => console.warn("Redirect handling error:", e));
+
+    // ✅ Expose functions globally to be called from Dart
+    window.msalLogin = async function () {
+      console.log("🪟 Starting MSAL web login...");
+
+      const loginRequest = {
+        scopes: [
+          "api://beb2c846-d811-4014-9479-00c6361b18e2/access_as_user"
+        ],
+      };
+
+      try {
+        // 🔹 1. Try existing session first
+        const accounts = msalInstance.getAllAccounts();
+        if (accounts.length > 0) {
+          console.log("✅ Found existing account:", accounts[0].username);
+          const silentResult = await msalInstance.acquireTokenSilent({
+            ...loginRequest,
+            account: accounts[0],
+          });
+          console.log("🎟️ Silent token acquired.");
+          return silentResult.accessToken ?? null;
+        }
+
+        // 🔹 2. No existing session? Open popup
+        console.log("🪟 Opening MSAL login popup...");
+        const loginResponse = await msalInstance.loginPopup(loginRequest);
+        console.log("✅ Login successful:", loginResponse.account.username);
+
+        // 🔹 3. Acquire token silently
+        const tokenResponse = await msalInstance.acquireTokenSilent({
+          ...loginRequest,
+          account: loginResponse.account,
+        });
+
+        // ✅ Close popup safely if running inside popup
+        if (window.opener && window.opener !== window) {
+          console.log("🔒 Closing popup window...");
+          setTimeout(() => window.close(), 500);
+        }
+
+        if (tokenResponse && tokenResponse.accessToken) {
+          console.log(
+            "✅ Token acquired:",
+            tokenResponse.accessToken.substring(0, 20) + "..."
+          );
+          return tokenResponse.accessToken;
+        } else {
+          console.warn("⚠️ No access token found in response");
+          return null;
+        }
+      } catch (err) {
+        console.error("❌ MSAL Login Error:", err);
+
+        // Handle MFA / conditional access fallback
+        if (err.errorCode === "interaction_required") {
+          try {
+            const popupResponse = await msalInstance.loginPopup(loginRequest);
+            const tokenResponse = await msalInstance.acquireTokenSilent({
+              ...loginRequest,
+              account: popupResponse.account,
+            });
+            if (window.opener && window.opener !== window) {
+              console.log("🔒 Closing popup window (fallback)...");
+              setTimeout(() => window.close(), 500);
+            }
+            return tokenResponse.accessToken ?? null;
+          } catch (popupErr) {
+            console.error("❌ Popup login failed:", popupErr);
+          }
+        }
+
+        return null;
+      }
+    };
+
+    window.webAzureLogout = function () {
+      try {
+        msalInstance.logoutPopup().then(() => {
+          localStorage.clear();
+          sessionStorage.clear();
+          console.log("✅ Logged out and cleared cache");
+        });
+      } catch (e) {
+        console.error("Logout error:", e);
+      }
+    };
+  })();
+</script>
+
+
+
+
+
+
+
   </body>
 </html>

@@ -137,6 +137,8 @@ void _onScroll() {
     }
   }
 
+  
+
  Future<void> fetchLeads(int page, [String? search]) async {
   try {
     if (page == 1) {

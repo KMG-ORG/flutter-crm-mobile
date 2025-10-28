@@ -14,36 +14,39 @@ class _LoginPageState extends State<LoginPage> {
   bool _initialized = false;
   final TextEditingController _emailController = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
+ @override
+void initState() {
+  super.initState();
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    final authService = context.read<AuthService>();
+    await authService.init();
 
-    // Initialize MSAL safely
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final authService = context.read<AuthService>();
-      await authService.init();
-      if (mounted) {
-        setState(() {
-          _initialized = true;
-          _loading = false;
-        });
-      }
+    if (!mounted) return; // ✅ prevent updates on disposed widget
+    setState(() {
+      _initialized = true;
+      _loading = false;
     });
-  }
+  });
+}
 
-  void _saveToken(String token) {
-    if (token.isNotEmpty) {
-      final authService = context.read<AuthService>();
-      authService.saveToken(token);
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, "/home");
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter a valid token")),
-      );
-    }
+
+Future<void> _saveToken(String token) async {
+  if (token.isNotEmpty) {
+    final authService = context.read<AuthService>();
+    await authService.saveToken(token); // async call
+
+    if (!mounted) return;
+    print("✅ Token saved successfully!");
+  } else {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Please enter a valid token")),
+    );
   }
+}
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -242,26 +245,62 @@ class _LoginPageState extends State<LoginPage> {
                                       ),
                                     ),
                               onPressed: _loading
-                                  ? null
-                                  : () async {
-                                      setState(() => _loading = true);
-                                      final token = await authService.login();
-                                      setState(() => _loading = false);
+    ? null
+    : () async {
+        if (_loading) return; // 🔒 Prevent multiple presses
+        setState(() => _loading = true);
 
-                                      if (token != null && token.isNotEmpty) {
-                                        _saveToken(token);
-                                      } else {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              "Login failed. Try again.",
-                                            ),
-                                          ),
-                                        );
-                                      }
-                                    },
+        try {
+          final authService = context.read<AuthService>();
+          final token = await authService.login();
+
+          if (!mounted) return;
+          setState(() => _loading = false);
+
+          // ✅ Successful login
+          if (token != null && token.isNotEmpty) {
+            await _saveToken(token);
+
+            if (!mounted) return;
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("✅ Login successful!"),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 2),
+              ),
+            );
+
+            // ✅ Navigate to home screen safely
+            Navigator.pushReplacementNamed(context, '/home');
+          } else {
+            // ❌ Login failed
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Login failed. Please try again."),
+                backgroundColor: Colors.redAccent,
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+        } catch (e) {
+          if (!mounted) return;
+
+          setState(() => _loading = false);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("⚠️ Error: $e"),
+              backgroundColor: Colors.redAccent,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      },
+
+
+
                             ),
                           ),
 

@@ -6,6 +6,14 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 // ///////////
 // import 'package:shared_preferences/shared_preferences.dart';
 // ///////////
+
+void debugLog(String message) {
+  assert(() {
+    print("🪶 $message");
+    return true;
+  }());
+}
+
 class ApiService {
   final String baseUrl = dotenv.env['BASE_URL'] ?? '';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
@@ -44,6 +52,7 @@ class ApiService {
   Future<Map<String, dynamic>> getLeads(Map<String, dynamic> payload) async {
     // final token = await _storage.read(key: "access_token");
     final token = await _storage.read(key: _tokenKey);
+    debugLog("🔹 Token fetched: $token");
     final payload = {
       'pageSize': 20,
       'pageNumber': 1,
