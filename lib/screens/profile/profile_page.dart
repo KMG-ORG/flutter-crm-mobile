@@ -1,4 +1,5 @@
 import 'package:crmMobileUi/core/services/auth_service.dart';
+import 'package:crmMobileUi/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -6,165 +7,193 @@ class ProfilePage extends StatelessWidget {
   final Function(int) onItemTapped;
 
   const ProfilePage({super.key, required this.onItemTapped});
-  //const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     final authService = context.read<AuthService>();
+    final apiService = ApiService();
+
     return Scaffold(
+      appBar: AppBar(
+        elevation: 0,
+        // backgroundColor: const Color.fromARGB(255, 109, 94, 180),
+        centerTitle: true,
+        title: const Text(
+          "Profile",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF6A5AE0), Color(0xFFB35FE5)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+      ),
       body: Column(
         children: [
-          // AppBar with Gradient
-          Container(
-            padding: const EdgeInsets.only(
-              top: 15,
-              left: 16,
-              right: 16,
-              bottom: 15,
-            ),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF6A5AE0), Color(0xFFB35FE5)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
-                const Spacer(),
-                const Text(
-                  "Profile",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const Spacer(flex: 2),
-              ],
-            ),
-          ),
+          // 🔹 Profile Card (Dynamic Data)
+          FutureBuilder<Map<String, dynamic>?>(
+            future: apiService.getUserDetails(), // ✅ Using the API service method
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Padding(
+                  padding: EdgeInsets.all(32.0),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
 
-          // Profile Card
-          Container(
-            margin: const EdgeInsets.all(16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              //color: Colors.pink[50],
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                const CircleAvatar(
-                  radius: 28,
-                  // backgroundImage: NetworkImage(
-                  //   "https://randomuser.me/api/portraits/women/44.jpg",
-                  // ),
-                  backgroundImage: AssetImage("images/sidemenu/profile.jpg"),
+              if (snapshot.hasError) {
+                return Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text("⚠️ Error loading user: ${snapshot.error}"),
+                );
+              }
+
+              final user = snapshot.data;
+              if (user == null) {
+                return const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text("No user data found"),
+                );
+              }
+
+              // ✅ Adjust these keys according to your saved user data
+              final userName = user['display_name'] ??
+                  user['fullName'] ??
+                  user['username'] ??
+                  'Unknown User';
+              final email = user['email'] ?? 'Not Available';
+              final roles = user['roles'] ?? [];
+              final roleNames = (roles is List && roles.isNotEmpty)
+                  ? roles
+                      .map((r) => r['roleName'] ?? '')
+                      .where((r) => r.toString().isNotEmpty)
+                      .join(', ')
+                  : 'User';
+
+              return Container(
+                margin: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
+                    )
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Text(
-                      //   "Erin Mitchell",
-                      //   style: TextStyle(
-                      //     fontSize: 16,
-                      //     fontWeight: FontWeight.bold,
-                      //   ),
-                      // ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment
-                            .spaceBetween, // 👈 pushes to edges
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 28,
+                      backgroundColor: Colors.deepPurple[300],
+                      child: Text(
+                        (() {
+                          final displayName = userName.trim();
+                          if (displayName.isEmpty) return '';
+                          final parts = displayName.split(' ');
+                          if (parts.length == 1) {
+                            return parts.first.substring(0, 1).toUpperCase();
+                          } else {
+                            return (parts.first[0] + parts.last[0])
+                                .toUpperCase();
+                          }
+                        })(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            "Erin Mitchell",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            overflow: TextOverflow.ellipsis,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  userName,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              IconButton(
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                icon: const Icon(
+                                  Icons.power_settings_new,
+                                  color: Colors.red,
+                                  size: 20,
+                                ),
+                                onPressed: () async {
+                                  await authService.logout();
+                                  Navigator.of(context)
+                                      .pushReplacementNamed('/login');
+                                },
+                              ),
+                            ],
                           ),
-                          IconButton(
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            icon: const Icon(
-                              Icons.power_settings_new,
-                              color: Colors.red,
-                              size: 20,
-                            ),
-                            onPressed: () async {
-                              await authService.logout(); // clears cache
-                              Navigator.of(
-                                context,
-                              ).pushReplacementNamed('/login');
-                            },
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Icons.email,
+                                  size: 16, color: Colors.black54),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  email,
+                                  style: const TextStyle(color: Colors.black54),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
-                          // IconButton(
-                          //   padding: EdgeInsets.zero,
-                          //   constraints: const BoxConstraints(),
-                          //   icon: const Icon(
-                          //     Icons.power_settings_new,
-                          //     color: Colors.red,
-                          //     size: 20,
-                          //   ),
-                          //   onPressed: () {
-                          //     // handle logout
-                          //   },
-                          // ),
-                        ],
-                      ),
-                      SizedBox(height: 4),
-                      // Text(
-                      //   "erinMitchell@company.com",
-                      //   style: TextStyle(color: Colors.black54),
-                      // ),
-                      Row(
-                        children: const [
-                          Icon(Icons.email, size: 16, color: Colors.black54),
-                          SizedBox(width: 6),
-                          Text(
-                            "erinMitchell@company.com",
-                            style: TextStyle(color: Colors.black54),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 4),
-                      //Text("Admin", style: TextStyle(color: Colors.black54)),
-                      Row(
-                        children: const [
-                          Icon(Icons.work, size: 16, color: Colors.black54),
-                          SizedBox(width: 6),
-                          Text(
-                            "Admin",
-                            style: TextStyle(color: Colors.black54),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Icons.work,
+                                  size: 16, color: Colors.black54),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  roleNames,
+                                  style: const TextStyle(color: Colors.black54),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                // IconButton(
-                //   icon: const Icon(
-                //     Icons.power_settings_new,
-                //     color: Colors.red,
-                //     size: 30,
-                //   ),
-                //   onPressed: () {},
-                // ),
-              ],
-            ),
+              );
+            },
           ),
 
-          // Menu List
+          // 🔹 Menu List
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -186,7 +215,6 @@ class ProfilePage extends StatelessWidget {
                   onTap: () {},
                 ),
                 const SizedBox(height: 12),
-
                 const SectionHeader(title: "Identity"),
                 ProfileMenuItem(
                   icon: Icons.flash_on,
@@ -222,7 +250,7 @@ class ProfilePage extends StatelessWidget {
   }
 }
 
-// Section Header
+// 🔹 Section Header Widget
 class SectionHeader extends StatelessWidget {
   final String title;
   const SectionHeader({super.key, required this.title});
@@ -243,7 +271,7 @@ class SectionHeader extends StatelessWidget {
   }
 }
 
-// Menu Item Widget
+// 🔹 Profile Menu Item Widget
 class ProfileMenuItem extends StatelessWidget {
   final IconData icon;
   final String text;
