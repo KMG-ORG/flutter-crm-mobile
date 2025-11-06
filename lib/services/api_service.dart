@@ -10,6 +10,7 @@ class ApiService {
   final String baseUrl = dotenv.env['BASE_URL'] ?? '';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   static const String _tokenKey = "auth_token";
+  static const String _userDetailKey = "user_detail";
 
   // String generateGUID() {
   //   final random =
@@ -72,6 +73,27 @@ class ApiService {
       };
     } else {
       throw Exception("Failed to fetch leads: ${response.body}");
+    }
+  }
+   /// --- 🔹 Fetch saved user details from secure storage ---
+  Future<Map<String, dynamic>?> getUserDetails() async {
+    try {
+      // Read JSON string from secure storage
+      final userDetail = await _storage.read(key: _userDetailKey);
+
+      if (userDetail == null || userDetail.isEmpty) {
+        print("⚠️ No user details found in storage");
+        return null;
+      }
+
+      // Decode JSON to a Map
+      final Map<String, dynamic> userMap = jsonDecode(userDetail);
+      print("👤 Loaded user details: ${userMap['username'] ?? 'Unknown'}");
+      return userMap;
+    } catch (e, s) {
+      print("❌ Error reading user details: $e");
+      print(s);
+      return null;
     }
   }
 
