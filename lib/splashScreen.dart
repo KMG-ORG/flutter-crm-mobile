@@ -53,17 +53,17 @@ class _SplashScreenState extends State<SplashScreen> {
                   letterSpacing: 1.2,
                 ),
               ),
-              Padding(
-                padding: EdgeInsets.only(top: 4.0, right: 4.0),
-                child: Text(
-                  'by KMG',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 16,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ),
+              // Padding(
+              //   padding: EdgeInsets.only(top: 4.0, right: 4.0),
+              //   child: Text(
+              //     'by KMG',
+              //     style: TextStyle(
+              //       color: Colors.white70,
+              //       fontSize: 16,
+              //       fontStyle: FontStyle.italic,
+              //     ),
+              //   ),
+              // ),
             ],
           ),
         ),

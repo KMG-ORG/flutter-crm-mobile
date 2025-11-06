@@ -1,13 +1,27 @@
 import 'package:flutter/material.dart';
 
 class ContactDetailsPage extends StatefulWidget {
-  const ContactDetailsPage({super.key});
+  final List<Map<String, dynamic>> contacts;
+  final int selectedIndex; // 👈 add this
+  const ContactDetailsPage({
+    super.key,
+    required this.contacts,
+    required this.selectedIndex,
+  });
 
   @override
   State<ContactDetailsPage> createState() => _ContactDetailsPageState();
 }
 
 class _ContactDetailsPageState extends State<ContactDetailsPage> {
+  late Map<String, dynamic> contact;
+
+  @override
+  void initState() {
+    super.initState();
+    contact = widget.contacts[widget.selectedIndex]; // 👈 get single contact
+  }
+
   int selectedTabIndex = 0; // 0 -> Related, 1 -> Emails, 2 -> Details
   @override
   Widget build(BuildContext context) {
@@ -78,41 +92,47 @@ class _ContactDetailsPageState extends State<ContactDetailsPage> {
                 const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
-                      "Christopher Maclead",
-                      style: TextStyle(
+                      contact['fullName'] ?? 'Unknown',
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.email_outlined,
                           size: 14,
                           color: Colors.purple,
                         ),
-                        SizedBox(width: 4),
+                        const SizedBox(width: 4),
                         Text(
-                          "erinMitchell@company.com",
-                          style: TextStyle(fontSize: 13, color: Colors.black54),
+                          contact['email'] ?? 'Unknown',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.black54,
+                          ),
                         ),
                       ],
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.phone_outlined,
                           size: 14,
                           color: Colors.purple,
                         ),
-                        SizedBox(width: 4),
+                        const SizedBox(width: 4),
                         Text(
-                          "555-453-3453",
-                          style: TextStyle(fontSize: 13, color: Colors.black54),
+                          contact['mobile'] ?? 'Unknown',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.black54,
+                          ),
                         ),
                       ],
                     ),
@@ -126,13 +146,16 @@ class _ContactDetailsPageState extends State<ContactDetailsPage> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: Row(
-              children: const [
+              children: [
                 Text(
-                  "Erin Mitchell",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  contact['account'] ?? '',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                SizedBox(width: 6),
-                Text(
+                const SizedBox(width: 6),
+                const Text(
                   "Account",
                   style: TextStyle(fontSize: 13, color: Colors.black54),
                 ),
@@ -266,15 +289,15 @@ class _ContactDetailsPageState extends State<ContactDetailsPage> {
         ),
         const SizedBox(height: 12),
 
-        _buildInfoRow("Contact Owner", "James Merced"),
-        _buildInfoRow("Lead Source", "-None-"),
-        _buildInfoRow("Contact Name", "Sam Disuja"),
-        _buildInfoRow("Account Name", "BareMinimum Pvt Ltd"),
-        _buildInfoRow("Email", "maloonpvt@gmail.com"),
-        _buildInfoRow("Title", "Mr."),
-        _buildInfoRow("Department", "Sales"),
-        _buildInfoRow("Assistant", "James Merced"),
-        _buildInfoRow("Reports To", "James Merced"),
+        _buildInfoRow("Contact Owner", contact['owner'] ?? "—"),
+        _buildInfoRow("Lead Source", contact['leadSource'] ?? "—"),
+        _buildInfoRow("Contact Name", contact['fullName'] ?? "—"),
+        _buildInfoRow("Account Name", contact['account'] ?? "—"),
+        _buildInfoRow("Email", contact['email'] ?? "—"),
+        _buildInfoRow("Title", contact['title'] ?? "—"),
+        _buildInfoRow("Department", contact['department'] ?? "—"),
+        _buildInfoRow("Assistant", contact['assistant'] ?? "—"),
+        _buildInfoRow("Reports To", contact['reportingTo'] ?? "—"),
 
         const SizedBox(height: 16),
       ],
