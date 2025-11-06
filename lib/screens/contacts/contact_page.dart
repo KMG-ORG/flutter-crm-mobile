@@ -253,7 +253,7 @@ class _ContactsPageState extends State<ContactsPage> {
                       padding: const EdgeInsets.all(6),
                       child: GestureDetector(
                         onTap: () {
-                          // Open filter
+                          // TODO: Add filter functionality
                         },
                         child: const Icon(
                           Icons.filter_list,
@@ -287,6 +287,7 @@ class _ContactsPageState extends State<ContactsPage> {
                             category: contact['account'] ?? "N/A",
                             email: contact['email'] ?? "N/A",
                             phone: contact['phone'] ?? "N/A",
+                            index: index, // ✅ pass index here
                           );
                         } else {
                           return const Padding(
@@ -336,18 +337,15 @@ class _ContactsPageState extends State<ContactsPage> {
     required String category,
     required String email,
     required String phone,
+    required int index, // ✅ added index parameter
   }) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => ContactDetailsPage(
-              // name: name,
-              // email: email,
-              // phone: phone,
-              // category: category,
-            ),
+            builder: (_) =>
+                ContactDetailsPage(contacts: contacts, selectedIndex: index),
           ),
         );
       },
