@@ -340,15 +340,30 @@ class _ContactsPageState extends State<ContactsPage> {
     required int index, // ✅ added index parameter
   }) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
+      // onTap: () {
+      //   Navigator.push(
+      //     context,
+      //     MaterialPageRoute(
+      //       builder: (_) =>
+      //           ContactDetailsPage(contacts: contacts, selectedIndex: index),
+      //     ),
+      //   );
+      // },
+      onTap: () async {
+        final result = await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (_) =>
                 ContactDetailsPage(contacts: contacts, selectedIndex: index),
           ),
         );
+
+        // ✅ When returning from ContactDetailsPage, refresh list
+        if (result == true) {
+          await _refreshContacts();
+        }
       },
+
       child: Card(
         color: Colors.white,
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),

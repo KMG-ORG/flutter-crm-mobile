@@ -1,7 +1,10 @@
+import 'package:crmMobileUi/screens/contacts/edit_contact.dart';
+import 'package:crmMobileUi/services/api_service.dart';
 import 'package:flutter/material.dart';
 
 class ContactDetailsPage extends StatefulWidget {
   final List<Map<String, dynamic>> contacts;
+
   final int selectedIndex; // 👈 add this
   const ContactDetailsPage({
     super.key,
@@ -15,10 +18,13 @@ class ContactDetailsPage extends StatefulWidget {
 
 class _ContactDetailsPageState extends State<ContactDetailsPage> {
   late Map<String, dynamic> contact;
+  List<Map<String, dynamic>> contactOwners = [];
+  bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
+    fetchContactOwners();
     contact = widget.contacts[widget.selectedIndex]; // 👈 get single contact
   }
 
@@ -34,7 +40,7 @@ class _ContactDetailsPageState extends State<ContactDetailsPage> {
           centerTitle: true,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(context, true),
           ),
           title: const Text(
             "Contacts",
@@ -45,11 +51,25 @@ class _ContactDetailsPageState extends State<ContactDetailsPage> {
             ),
           ),
           actions: [
-            Padding(
-              padding: const EdgeInsets.only(
-                right: 12,
-              ), // 👈 added margin from right
-              child: Icon(Icons.edit, color: Colors.white, size: 24),
+            IconButton(
+              icon: const Icon(Icons.edit, color: Colors.white),
+              onPressed: () async {
+                final updated = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => EditContactPage(
+                      contact: contact,
+                      contactOwners: contactOwners,
+                    ),
+                  ),
+                );
+
+                if (updated != null && mounted) {
+                  setState(() {
+                    contact = updated;
+                  });
+                }
+              },
             ),
           ],
           flexibleSpace: Container(
@@ -63,164 +83,187 @@ class _ContactDetailsPageState extends State<ContactDetailsPage> {
           ),
         ),
       ),
-      body: Column(
-        children: [
-          // PROFILE CARD
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 4,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
               children: [
-                const CircleAvatar(
-                  radius: 28,
-                  backgroundColor: Color(0xFFE0E0E0),
-                  child: Icon(
-                    Icons.photo_camera_outlined,
-                    size: 28,
-                    color: Colors.black54,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      contact['fullName'] ?? 'Unknown',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                // PROFILE CARD
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 4,
+                        offset: Offset(0, 2),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.email_outlined,
-                          size: 14,
-                          color: Colors.purple,
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      const CircleAvatar(
+                        radius: 28,
+                        backgroundColor: Color(0xFFE0E0E0),
+                        child: Icon(
+                          Icons.photo_camera_outlined,
+                          size: 28,
+                          color: Colors.black54,
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          contact['email'] ?? 'Unknown',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: Colors.black54,
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            contact['fullName'] ?? 'Unknown',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.phone_outlined,
-                          size: 14,
-                          color: Colors.purple,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          contact['mobile'] ?? 'Unknown',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: Colors.black54,
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.email_outlined,
+                                size: 14,
+                                color: Colors.purple,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                contact['email'] ?? 'Unknown',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          // ACCOUNT NAME
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: Row(
-              children: [
-                Text(
-                  contact['account'] ?? '',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.phone_outlined,
+                                size: 14,
+                                color: Colors.purple,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                contact['mobile'] ?? 'Unknown',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 6),
-                const Text(
-                  "Account",
-                  style: TextStyle(fontSize: 13, color: Colors.black54),
+
+                // ACCOUNT NAME
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  child: Row(
+                    children: [
+                      Text(
+                        contact['account'] ?? '',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Text(
+                        "Account",
+                        style: TextStyle(fontSize: 13, color: Colors.black54),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // TAB BAR
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: Container(
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF2F1FC),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        _buildTab("Related", 0),
+                        _buildTab("Emails", 1),
+                        _buildTab("Details", 2),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // EXPANDABLE SECTIONS
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    children: [
+                      if (selectedTabIndex == 0) ...[
+                        _buildExpandableTile("Notes & Tech Details", true),
+                        _buildExpandableTile("Attachments", false),
+                        _buildExpandableTile("Campaigns", false),
+                        _buildExpandableTile("Timeline", false),
+                      ] else if (selectedTabIndex == 1) ...[
+                        _buildEmailTabSection(),
+                      ] else if (selectedTabIndex == 2) ...[
+                        _buildContactInfoSection(),
+                      ],
+                    ],
+                  ),
                 ),
               ],
             ),
-          ),
-
-          // TAB BAR
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Container(
-              height: 42,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF2F1FC),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  _buildTab("Related", 0),
-                  _buildTab("Emails", 1),
-                  _buildTab("Details", 2),
-                ],
-              ),
-            ),
-          ),
-
-          // EXPANDABLE SECTIONS
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: [
-                if (selectedTabIndex == 0) ...[
-                  _buildExpandableTile("Notes & Tech Details", true),
-                  _buildExpandableTile("Attachments", false),
-                  _buildExpandableTile("Campaigns", false),
-                  _buildExpandableTile("Timeline", false),
-                ] else if (selectedTabIndex == 1) ...[
-                  _buildEmailTabSection(),
-                ] else if (selectedTabIndex == 2) ...[
-                  _buildContactInfoSection(),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: const Color(0xFF4A00E0),
-        unselectedItemColor: Colors.black54,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.mail_outline), label: ""),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.location_on_outlined),
-            label: "",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.photo_album_outlined),
-            label: "",
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.phone_outlined), label: ""),
-        ],
-      ),
+      // bottomNavigationBar: BottomNavigationBar(
+      //   type: BottomNavigationBarType.fixed,
+      //   backgroundColor: Colors.white,
+      //   selectedItemColor: const Color(0xFF4A00E0),
+      //   unselectedItemColor: Colors.black54,
+      //   items: const [
+      //     BottomNavigationBarItem(icon: Icon(Icons.mail_outline), label: ""),
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.location_on_outlined),
+      //       label: "",
+      //     ),
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.photo_album_outlined),
+      //       label: "",
+      //     ),
+      //     BottomNavigationBarItem(icon: Icon(Icons.phone_outlined), label: ""),
+      //   ],
+      // ),
     );
+  }
+
+  Future<void> fetchContactOwners() async {
+    try {
+      setState(() => isLoading = true);
+      final apiService = ApiService();
+      final owners = await apiService.getOwners();
+
+      setState(() {
+        contactOwners = owners;
+      });
+
+      print("✅ Contact owners fetched: ${owners.length}");
+    } catch (e) {
+      print("❌ Error fetching contact owners: $e");
+    } finally {
+      setState(() => isLoading = false);
+    }
   }
 
   Widget _buildTab(String title, int index) {
