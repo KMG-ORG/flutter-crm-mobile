@@ -227,24 +227,24 @@ class _ContactDetailsPageState extends State<ContactDetailsPage> {
                 ),
               ],
             ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: const Color(0xFF4A00E0),
-        unselectedItemColor: Colors.black54,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.mail_outline), label: ""),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.location_on_outlined),
-            label: "",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.photo_album_outlined),
-            label: "",
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.phone_outlined), label: ""),
-        ],
-      ),
+      // bottomNavigationBar: BottomNavigationBar(
+      //   type: BottomNavigationBarType.fixed,
+      //   backgroundColor: Colors.white,
+      //   selectedItemColor: const Color(0xFF4A00E0),
+      //   unselectedItemColor: Colors.black54,
+      //   items: const [
+      //     BottomNavigationBarItem(icon: Icon(Icons.mail_outline), label: ""),
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.location_on_outlined),
+      //       label: "",
+      //     ),
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.photo_album_outlined),
+      //       label: "",
+      //     ),
+      //     BottomNavigationBarItem(icon: Icon(Icons.phone_outlined), label: ""),
+      //   ],
+      // ),
     );
   }
 
