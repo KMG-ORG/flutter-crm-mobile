@@ -252,7 +252,7 @@ class _ContactDetailsPageState extends State<ContactDetailsPage> {
     try {
       setState(() => isLoading = true);
       final apiService = ApiService();
-      final owners = await apiService.getContactOwners();
+      final owners = await apiService.getOwners();
 
       setState(() {
         contactOwners = owners;

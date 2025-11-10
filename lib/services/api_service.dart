@@ -402,8 +402,31 @@ class ApiService {
     }
   }
 
-  // 🔹 FETCH CONTACT OWNERS (Users)
-  Future<List<Map<String, dynamic>>> getContactOwners() async {
+  Future<bool> updateAccount(Map<String, dynamic> data) async {
+    final token = await _storage.read(key: _tokenKey);
+
+    final response = await http.post(
+      Uri.parse("$baseUrl/Account/UpdateAccount"), // ✅ Confirm correct path
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+        "X-Correlation-Id": generateGUID(),
+        "X-Request-Id": generateGUID(),
+      },
+      body: jsonEncode(data),
+    );
+
+    if (response.statusCode == 200) {
+      // ✅ Only status code check, no need to parse JSON
+      return true;
+    } else {
+      throw Exception(
+        'Failed to update account. Status: ${response.statusCode}',
+      );
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getOwners() async {
     try {
       final token = await _storage.read(key: _tokenKey);
       final response = await http.get(
