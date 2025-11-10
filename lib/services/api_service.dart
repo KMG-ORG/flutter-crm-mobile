@@ -75,7 +75,8 @@ class ApiService {
       throw Exception("Failed to fetch leads: ${response.body}");
     }
   }
-   /// --- 🔹 Fetch saved user details from secure storage ---
+
+  /// --- 🔹 Fetch saved user details from secure storage ---
   Future<Map<String, dynamic>?> getUserDetails() async {
     try {
       // Read JSON string from secure storage
@@ -109,7 +110,7 @@ class ApiService {
           "AccountType",
           "TimeZone",
           "Salutation",
-        ]
+        ],
       };
 
       final response = await http.post(
@@ -145,54 +146,50 @@ class ApiService {
 
   // 🔹 CREATE LEAD
   Future<Map<String, dynamic>> createLead(Map<String, dynamic> leadData) async {
-  try {
-    final token = await _storage.read(key: _tokenKey);
+    try {
+      final token = await _storage.read(key: _tokenKey);
 
-    final response = await http.post(
-      Uri.parse("$baseUrl/Lead/CreateLead"),
-      headers: {
-        "Authorization": "Bearer $token",
-        "Content-Type": "application/json",
-        "X-Correlation-Id": generateGUID(),
-        "X-Request-Id": generateGUID(),
-      },
-      body: jsonEncode(leadData),
-    );
+      final response = await http.post(
+        Uri.parse("$baseUrl/Lead/CreateLead"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+          "X-Correlation-Id": generateGUID(),
+          "X-Request-Id": generateGUID(),
+        },
+        body: jsonEncode(leadData),
+      );
 
-    // 🔹 Log response for debugging
-    print("Response Status: ${response.statusCode}");
-    print("Response Body: ${response.body}");
+      // 🔹 Log response for debugging
+      print("Response Status: ${response.statusCode}");
+      print("Response Body: ${response.body}");
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final bodyText = response.body.trim();
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final bodyText = response.body.trim();
 
-      // ✅ If backend returns GUID or plain text instead of JSON
-      if (!bodyText.startsWith("{") && !bodyText.startsWith("[")) {
+        // ✅ If backend returns GUID or plain text instead of JSON
+        if (!bodyText.startsWith("{") && !bodyText.startsWith("[")) {
+          return {
+            "success": true,
+            "message": "Lead created successfully",
+            "leadId": bodyText,
+          };
+        }
+
+        // ✅ Otherwise, parse JSON
+        final body = jsonDecode(bodyText);
         return {
           "success": true,
-          "message": "Lead created successfully",
-          "leadId": bodyText,
+          "message": body["message"] ?? "Lead created successfully",
+          "data": body,
         };
+      } else {
+        throw Exception("Failed to create lead: ${response.body}");
       }
-
-      // ✅ Otherwise, parse JSON
-      final body = jsonDecode(bodyText);
-      return {
-        "success": true,
-        "message": body["message"] ?? "Lead created successfully",
-        "data": body,
-      };
-    } else {
-      throw Exception("Failed to create lead: ${response.body}");
+    } catch (e) {
+      throw Exception("Error creating lead: $e");
     }
-  } catch (e) {
-    throw Exception("Error creating lead: $e");
   }
-}
-
-
-
-
 
   Future<Map<String, dynamic>> getContacts(Map<String, dynamic> payload) async {
     final token = await _storage.read(key: _tokenKey);
@@ -402,6 +399,74 @@ class ApiService {
       };
     } else {
       throw Exception('Failed to load Products');
+    }
+  }
+
+  Future<bool> updateAccount(Map<String, dynamic> data) async {
+    final token = await _storage.read(key: _tokenKey);
+
+    final response = await http.post(
+      Uri.parse("$baseUrl/Account/UpdateAccount"), // ✅ Confirm correct path
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+        "X-Correlation-Id": generateGUID(),
+        "X-Request-Id": generateGUID(),
+      },
+      body: jsonEncode(data),
+    );
+
+    if (response.statusCode == 200) {
+      // ✅ Only status code check, no need to parse JSON
+      return true;
+    } else {
+      throw Exception(
+        'Failed to update account. Status: ${response.statusCode}',
+      );
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getOwners() async {
+    try {
+      final token = await _storage.read(key: _tokenKey);
+      final response = await http.get(
+        Uri.parse("$baseUrl/NetAuth/GetUsersAsync"),
+        //headers: {'Content-Type': 'application/json'},
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+          "X-Correlation-Id": generateGUID(),
+          "X-Request-Id": generateGUID(),
+        },
+      );
+      // final response = await http.get(
+      //   Uri.parse(
+      //     "https://gateway-crm-qa.azurewebsites.net/gateway/netcrm-qa/v1/NetAuth/GetUsersAsync",
+      //   ),
+      //   headers: {
+      //     "Authorization": "Bearer $token",
+      //     "Content-Type": "application/json",
+      //     "X-Correlation-Id": generateGUID(),
+      //     "X-Request-Id": generateGUID(),
+      //   },
+      // );
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+
+        // ✅ Check if response contains `userList`
+        if (body is Map && body.containsKey("userList")) {
+          final List userList = body["userList"];
+          return List<Map<String, dynamic>>.from(userList);
+        }
+
+        return [];
+      } else {
+        throw Exception("Failed to fetch contact owners: ${response.body}");
+      }
+    } catch (e) {
+      print("❌ Error fetching contact owners: $e");
+      rethrow;
     }
   }
 }

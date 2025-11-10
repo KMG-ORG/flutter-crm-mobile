@@ -1,3 +1,4 @@
+import 'package:crmMobileUi/screens/account/account_edit_page.dart';
 import 'package:crmMobileUi/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
@@ -315,6 +316,7 @@ class _AccountsPageState extends State<AccountsPage> {
                             type: account["accountType"] ?? "N/A",
                             amount: (account["annualRevenue"] ?? "0")
                                 .toString(),
+                            accountData: account,
                           );
                         } else {
                           // Loading indicator at bottom
@@ -367,6 +369,124 @@ class _AccountsPageState extends State<AccountsPage> {
     );
   }
 
+  // Widget contactCard({
+  //   required String name,
+  //   required String category,
+  //   required String website,
+  //   required String type,
+  //   required String phone,
+  //   required String email,
+  //   required dynamic amount,
+  // }) {
+  //   return Card(
+  //     color: Colors.white,
+  //     margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+  //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+  //     elevation: 2,
+  //     child: Padding(
+  //       padding: const EdgeInsets.all(12),
+  //       child: Stack(
+  //         alignment: Alignment.centerRight,
+  //         children: [
+  //           Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             children: [
+  //               Text(
+  //                 name,
+  //                 style: const TextStyle(
+  //                   fontSize: 16,
+  //                   fontWeight: FontWeight.bold,
+  //                 ),
+  //               ),
+  //               const SizedBox(height: 6),
+  //               if (category.isNotEmpty)
+  //                 Row(
+  //                   children: [
+  //                     const Icon(
+  //                       Icons.apartment_outlined,
+  //                       size: 16,
+  //                       color: Colors.purple,
+  //                     ),
+  //                     const SizedBox(width: 6),
+  //                     Text(
+  //                       category,
+  //                       style: const TextStyle(color: Colors.black54),
+  //                     ),
+  //                   ],
+  //                 ),
+  //               Row(
+  //                 children: [
+  //                   const Icon(Icons.language, size: 16, color: Colors.purple),
+  //                   const SizedBox(width: 6),
+  //                   Expanded(
+  //                     child: Text(
+  //                       website,
+  //                       style: const TextStyle(color: Colors.black54),
+  //                       overflow: TextOverflow.ellipsis,
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+  //               Row(
+  //                 children: [
+  //                   const Icon(Icons.person, size: 16, color: Colors.purple),
+  //                   const SizedBox(width: 6),
+  //                   Text(type, style: const TextStyle(color: Colors.black54)),
+  //                 ],
+  //               ),
+  //               if (email.isNotEmpty)
+  //                 Row(
+  //                   children: [
+  //                     const Icon(Icons.email, size: 16, color: Colors.purple),
+  //                     const SizedBox(width: 6),
+  //                     Expanded(
+  //                       child: Text(
+  //                         email,
+  //                         style: const TextStyle(color: Colors.black54),
+  //                         overflow: TextOverflow.ellipsis,
+  //                       ),
+  //                     ),
+  //                   ],
+  //                 ),
+  //               Row(
+  //                 children: [
+  //                   const Icon(Icons.phone, size: 16, color: Colors.purple),
+  //                   const SizedBox(width: 6),
+  //                   Text(phone),
+  //                 ],
+  //               ),
+  //               Row(
+  //                 children: [
+  //                   const Icon(
+  //                     Icons.attach_money,
+  //                     size: 16,
+  //                     color: Colors.purple,
+  //                   ),
+  //                   const SizedBox(width: 6),
+  //                   Text(amount, style: const TextStyle(color: Colors.black87)),
+  //                 ],
+  //               ),
+  //             ],
+  //           ),
+  //           Positioned(
+  //             right: 0,
+  //             child: Container(
+  //               decoration: BoxDecoration(
+  //                 color: Colors.blue.shade50,
+  //                 borderRadius: BorderRadius.circular(8),
+  //               ),
+  //               child: IconButton(
+  //                 icon: const Icon(Icons.phone, color: Colors.blue),
+  //                 onPressed: () {},
+  //               ),
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+
   Widget contactCard({
     required String name,
     required String category,
@@ -375,6 +495,7 @@ class _AccountsPageState extends State<AccountsPage> {
     required String phone,
     required String email,
     required dynamic amount,
+    Map<String, dynamic>? accountData,
   }) {
     return Card(
       color: Colors.white,
@@ -389,13 +510,54 @@ class _AccountsPageState extends State<AccountsPage> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                // 🔹 Account name with edit icon on right
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        name,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.edit,
+                        color: Colors.purple,
+                        size: 20,
+                      ),
+                      // onPressed: () {
+                      //   Navigator.push(
+                      //     context,
+                      //     MaterialPageRoute(
+                      //       builder: (_) =>
+                      //           EditAccountPage(account: accountData ?? {}),
+                      //     ),
+                      //   );
+                      // },
+                      onPressed: () async {
+                        // Wait for the edit screen to complete
+                        final updated = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                EditAccountPage(account: accountData ?? {}),
+                          ),
+                        );
+
+                        // If an update was made, refresh the list from API
+                        if (updated != null && mounted) {
+                          await fetchAccounts(1); // reload from page 1
+                        }
+                      },
+                    ),
+                  ],
                 ),
+
                 const SizedBox(height: 6),
                 if (category.isNotEmpty)
                   Row(
@@ -412,6 +574,7 @@ class _AccountsPageState extends State<AccountsPage> {
                       ),
                     ],
                   ),
+
                 Row(
                   children: [
                     const Icon(Icons.language, size: 16, color: Colors.purple),
@@ -425,6 +588,7 @@ class _AccountsPageState extends State<AccountsPage> {
                     ),
                   ],
                 ),
+
                 Row(
                   children: [
                     const Icon(Icons.person, size: 16, color: Colors.purple),
@@ -432,6 +596,7 @@ class _AccountsPageState extends State<AccountsPage> {
                     Text(type, style: const TextStyle(color: Colors.black54)),
                   ],
                 ),
+
                 if (email.isNotEmpty)
                   Row(
                     children: [
@@ -446,6 +611,7 @@ class _AccountsPageState extends State<AccountsPage> {
                       ),
                     ],
                   ),
+
                 Row(
                   children: [
                     const Icon(Icons.phone, size: 16, color: Colors.purple),
@@ -453,6 +619,7 @@ class _AccountsPageState extends State<AccountsPage> {
                     Text(phone),
                   ],
                 ),
+
                 Row(
                   children: [
                     const Icon(
@@ -466,6 +633,8 @@ class _AccountsPageState extends State<AccountsPage> {
                 ),
               ],
             ),
+
+            // 🔹 Keep existing phone icon at right-bottom corner
             Positioned(
               right: 0,
               child: Container(
