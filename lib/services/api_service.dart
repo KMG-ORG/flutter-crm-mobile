@@ -75,7 +75,8 @@ class ApiService {
       throw Exception("Failed to fetch leads: ${response.body}");
     }
   }
-   /// --- 🔹 Fetch saved user details from secure storage ---
+
+  /// --- 🔹 Fetch saved user details from secure storage ---
   Future<Map<String, dynamic>?> getUserDetails() async {
     try {
       // Read JSON string from secure storage
@@ -109,7 +110,7 @@ class ApiService {
           "AccountType",
           "TimeZone",
           "Salutation",
-        ]
+        ],
       };
 
       final response = await http.post(
@@ -145,54 +146,50 @@ class ApiService {
 
   // 🔹 CREATE LEAD
   Future<Map<String, dynamic>> createLead(Map<String, dynamic> leadData) async {
-  try {
-    final token = await _storage.read(key: _tokenKey);
+    try {
+      final token = await _storage.read(key: _tokenKey);
 
-    final response = await http.post(
-      Uri.parse("$baseUrl/Lead/CreateLead"),
-      headers: {
-        "Authorization": "Bearer $token",
-        "Content-Type": "application/json",
-        "X-Correlation-Id": generateGUID(),
-        "X-Request-Id": generateGUID(),
-      },
-      body: jsonEncode(leadData),
-    );
+      final response = await http.post(
+        Uri.parse("$baseUrl/Lead/CreateLead"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+          "X-Correlation-Id": generateGUID(),
+          "X-Request-Id": generateGUID(),
+        },
+        body: jsonEncode(leadData),
+      );
 
-    // 🔹 Log response for debugging
-    print("Response Status: ${response.statusCode}");
-    print("Response Body: ${response.body}");
+      // 🔹 Log response for debugging
+      print("Response Status: ${response.statusCode}");
+      print("Response Body: ${response.body}");
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final bodyText = response.body.trim();
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final bodyText = response.body.trim();
 
-      // ✅ If backend returns GUID or plain text instead of JSON
-      if (!bodyText.startsWith("{") && !bodyText.startsWith("[")) {
+        // ✅ If backend returns GUID or plain text instead of JSON
+        if (!bodyText.startsWith("{") && !bodyText.startsWith("[")) {
+          return {
+            "success": true,
+            "message": "Lead created successfully",
+            "leadId": bodyText,
+          };
+        }
+
+        // ✅ Otherwise, parse JSON
+        final body = jsonDecode(bodyText);
         return {
           "success": true,
-          "message": "Lead created successfully",
-          "leadId": bodyText,
+          "message": body["message"] ?? "Lead created successfully",
+          "data": body,
         };
+      } else {
+        throw Exception("Failed to create lead: ${response.body}");
       }
-
-      // ✅ Otherwise, parse JSON
-      final body = jsonDecode(bodyText);
-      return {
-        "success": true,
-        "message": body["message"] ?? "Lead created successfully",
-        "data": body,
-      };
-    } else {
-      throw Exception("Failed to create lead: ${response.body}");
+    } catch (e) {
+      throw Exception("Error creating lead: $e");
     }
-  } catch (e) {
-    throw Exception("Error creating lead: $e");
   }
-}
-
-
-
-
 
   Future<Map<String, dynamic>> getContacts(Map<String, dynamic> payload) async {
     final token = await _storage.read(key: _tokenKey);
@@ -402,6 +399,122 @@ class ApiService {
       };
     } else {
       throw Exception('Failed to load Products');
+    }
+  }
+
+  // 🔹 FETCH CONTACT OWNERS (Users)
+  Future<List<Map<String, dynamic>>> getContactOwners() async {
+    try {
+      final token = await _storage.read(key: _tokenKey);
+      final response = await http.get(
+        Uri.parse("$baseUrl/NetAuth/GetUsersAsync"),
+        //headers: {'Content-Type': 'application/json'},
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+          "X-Correlation-Id": generateGUID(),
+          "X-Request-Id": generateGUID(),
+        },
+      );
+      // final response = await http.get(
+      //   Uri.parse(
+      //     "https://gateway-crm-qa.azurewebsites.net/gateway/netcrm-qa/v1/NetAuth/GetUsersAsync",
+      //   ),
+      //   headers: {
+      //     "Authorization": "Bearer $token",
+      //     "Content-Type": "application/json",
+      //     "X-Correlation-Id": generateGUID(),
+      //     "X-Request-Id": generateGUID(),
+      //   },
+      // );
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+
+        // ✅ Check if response contains `userList`
+        if (body is Map && body.containsKey("userList")) {
+          final List userList = body["userList"];
+          return List<Map<String, dynamic>>.from(userList);
+        }
+
+        return [];
+      } else {
+        throw Exception("Failed to fetch contact owners: ${response.body}");
+      }
+    } catch (e) {
+      print("❌ Error fetching contact owners: $e");
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> updateContact(
+    Map<String, dynamic> contactData,
+  ) async {
+    try {
+      final token = await _storage.read(key: _tokenKey);
+      final response = await http.post(
+        Uri.parse("$baseUrl/Contact/UpdateContact"),
+        //headers: {'Content-Type': 'application/json'},
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+          "X-Correlation-Id": generateGUID(),
+          "X-Request-Id": generateGUID(),
+        },
+        body: jsonEncode(contactData),
+      );
+      // final token = await _getToken();
+      // _dio.options.headers['Authorization'] = 'Bearer $token';
+
+      // final response =
+      //     await _dio.post('${baseUrl}Contact/UpdateContact', data: contactData);
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+
+        // 🧠 Handle if backend returns int or bool instead of Map
+        if (decoded is Map<String, dynamic>) {
+          return decoded;
+        } else {
+          // Wrap primitive responses in a map
+          return {'success': true, 'value': decoded};
+        }
+      } else {
+        throw Exception(
+          'Failed to update contact: ${response.statusCode} - ${response.body}',
+        );
+      }
+    } catch (e) {
+      print('❌ Error updating contact: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> getContactById(String id) async {
+    try {
+      final token = await _storage.read(key: _tokenKey);
+
+      final response = await http.get(
+        Uri.parse("$baseUrl/Contact/GetContactById?id=$id"), // ✅ Corrected
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+          "X-Correlation-Id": generateGUID(),
+          "X-Request-Id": generateGUID(),
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        return body; // ✅ Now always returns Map<String, dynamic>
+      } else {
+        throw Exception(
+          'Failed to fetch contact: ${response.statusCode} - ${response.body}',
+        );
+      }
+    } catch (e) {
+      print('❌ Error fetching contact by ID: $e');
+      rethrow; // ✅ ensures error is properly propagated
     }
   }
 }

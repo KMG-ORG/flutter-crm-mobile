@@ -64,7 +64,9 @@ class _AddLeadPageState extends State<AddLeadPage> {
 
       setState(() {
         timeZones = List<Map<String, dynamic>>.from(data["TimeZone"] ?? []);
-        revenueTypes = List<Map<String, dynamic>>.from(data["RevenueType"] ?? []);
+        revenueTypes = List<Map<String, dynamic>>.from(
+          data["RevenueType"] ?? [],
+        );
         salutations = List<Map<String, dynamic>>.from(data["Salutation"] ?? []);
         industries = List<Map<String, dynamic>>.from(data["Industry"] ?? []);
         leadSources = List<Map<String, dynamic>>.from(data["LeadSource"] ?? []);
@@ -136,7 +138,7 @@ class _AddLeadPageState extends State<AddLeadPage> {
         "technologyDetails": techDetailsCtrl.text.trim(),
         "writtenPremium": int.tryParse(writtenPremiumCtrl.text) ?? 0,
         "companyLogoUrl": "",
-        "leadLogoUrl": ""
+        "leadLogoUrl": "",
       };
 
       final result = await _apiService.createLead(payload);
@@ -192,7 +194,11 @@ class _AddLeadPageState extends State<AddLeadPage> {
                   color: Colors.white.withOpacity(0.15),
                 ),
                 padding: const EdgeInsets.all(4.5),
-                child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                child: const Icon(
+                  Icons.arrow_back,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
             ),
           ),
@@ -229,7 +235,10 @@ class _AddLeadPageState extends State<AddLeadPage> {
           : SafeArea(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -277,36 +286,68 @@ class _AddLeadPageState extends State<AddLeadPage> {
                     // --- COMPANY INFORMATION ---
                     _sectionHeader("Company Information"),
                     _buildTextField("*Company Name", companyNameCtrl),
-                    _buildDropdown("Time Zone",
-                        timeZones.map((e) => e["displayName"].toString()).toList(),
-                        selectedTimeZone, (v) => setState(() => selectedTimeZone = v)),
-                    _buildDropdown("Revenue Type",
-                        revenueTypes.map((e) => e["displayName"].toString()).toList(),
-                        selectedRevenueType, (v) => setState(() => selectedRevenueType = v)),
+                    _buildDropdown(
+                      "Time Zone",
+                      timeZones
+                          .map((e) => e["displayName"].toString())
+                          .toList(),
+                      selectedTimeZone,
+                      (v) => setState(() => selectedTimeZone = v),
+                    ),
+                    _buildDropdown(
+                      "Revenue Type",
+                      revenueTypes
+                          .map((e) => e["displayName"].toString())
+                          .toList(),
+                      selectedRevenueType,
+                      (v) => setState(() => selectedRevenueType = v),
+                    ),
                     _buildNumberField("Written Premium", writtenPremiumCtrl),
                     _buildNumberField("Annual Revenue", annualRevenueCtrl),
                     _buildNumberField("Number of Employees", numEmployeesCtrl),
 
                     _sectionHeader("Contact Information"),
-                    _buildDropdown("Salutation",
-                        salutations.map((e) => e["displayName"].toString()).toList(),
-                        selectedSalutation, (v) => setState(() => selectedSalutation = v)),
+                    _buildDropdown(
+                      "Salutation",
+                      salutations
+                          .map((e) => e["displayName"].toString())
+                          .toList(),
+                      selectedSalutation,
+                      (v) => setState(() => selectedSalutation = v),
+                    ),
                     _buildTextField("*Last Name", lastNameCtrl),
                     _buildTextField("Email", emailCtrl),
-                    _buildCheckbox("Email Opt Out", emailOptOut,
-                        (val) => setState(() => emailOptOut = val!)),
+                    _buildCheckbox(
+                      "Email Opt Out",
+                      emailOptOut,
+                      (val) => setState(() => emailOptOut = val!),
+                    ),
 
                     _sectionHeader("General Information"),
-                    _buildDropdown("Industry",
-                        industries.map((e) => e["displayName"].toString()).toList(),
-                        selectedIndustry, (v) => setState(() => selectedIndustry = v)),
-                    _buildDropdown("Lead Source",
-                        leadSources.map((e) => e["displayName"].toString()).toList(),
-                        selectedLeadSource, (v) => setState(() => selectedLeadSource = v)),
-                        _buildTextField("Source Name", sourceNameCtrl),
-                         _buildTextField("Other Source Name", otherSourceNameCtrl),
-                    _buildDropdown("Owner", owners, selectedOwner,
-                        (v) => setState(() => selectedOwner = v)),
+                    _buildDropdown(
+                      "Industry",
+                      industries
+                          .map((e) => e["displayName"].toString())
+                          .toList(),
+                      selectedIndustry,
+                      (v) => setState(() => selectedIndustry = v),
+                    ),
+                    _buildDropdown(
+                      "Lead Source",
+                      leadSources
+                          .map((e) => e["displayName"].toString())
+                          .toList(),
+                      selectedLeadSource,
+                      (v) => setState(() => selectedLeadSource = v),
+                    ),
+                    _buildTextField("Source Name", sourceNameCtrl),
+                    _buildTextField("Other Source Name", otherSourceNameCtrl),
+                    _buildDropdown(
+                      "Owner",
+                      owners,
+                      selectedOwner,
+                      (v) => setState(() => selectedOwner = v),
+                    ),
 
                     _sectionHeader("Notes & Tech Details"),
                     _buildTextField("Description", descCtrl),
@@ -322,13 +363,16 @@ class _AddLeadPageState extends State<AddLeadPage> {
 
   // --- REUSABLE UI WIDGETS ---
   Widget _sectionHeader(String title) => Padding(
-        padding: const EdgeInsets.only(bottom: 8, top: 16),
-        child: Text(
-          title,
-          style: const TextStyle(
-              fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-        ),
-      );
+    padding: const EdgeInsets.only(bottom: 8, top: 16),
+    child: Text(
+      title,
+      style: const TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+        color: Colors.black87,
+      ),
+    ),
+  );
 
   Widget _buildTextField(String label, TextEditingController controller) =>
       Padding(
@@ -338,10 +382,12 @@ class _AddLeadPageState extends State<AddLeadPage> {
           decoration: InputDecoration(
             labelText: label,
             labelStyle: const TextStyle(color: Colors.black54, fontSize: 14),
-            enabledBorder:
-                UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey.shade300)),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
             focusedBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF8E2DE2))),
+              borderSide: BorderSide(color: Color(0xFF8E2DE2)),
+            ),
           ),
         ),
       );
@@ -355,43 +401,56 @@ class _AddLeadPageState extends State<AddLeadPage> {
           decoration: InputDecoration(
             labelText: label,
             labelStyle: const TextStyle(color: Colors.black54, fontSize: 14),
-            enabledBorder:
-                UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey.shade300)),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
             focusedBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF8E2DE2))),
+              borderSide: BorderSide(color: Color(0xFF8E2DE2)),
+            ),
           ),
         ),
       );
 
-  Widget _buildDropdown(String label, List<String> items, String? selectedValue,
-          ValueChanged<String?> onChanged) =>
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: DropdownButtonFormField<String>(
-          decoration: InputDecoration(
-            labelText: label,
-            labelStyle: const TextStyle(color: Colors.black54, fontSize: 14),
-            enabledBorder:
-                UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey.shade300)),
-          ),
-          value: selectedValue,
-          icon: const Icon(Icons.arrow_drop_down, color: Colors.black54),
-          items: items.map((v) => DropdownMenuItem(value: v, child: Text(v))).toList(),
-          onChanged: onChanged,
+  Widget _buildDropdown(
+    String label,
+    List<String> items,
+    String? selectedValue,
+    ValueChanged<String?> onChanged,
+  ) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8),
+    child: DropdownButtonFormField<String>(
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.black54, fontSize: 14),
+        enabledBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: Colors.grey.shade300),
         ),
-      );
+      ),
+      value: selectedValue,
+      icon: const Icon(Icons.arrow_drop_down, color: Colors.black54),
+      items: items
+          .map((v) => DropdownMenuItem(value: v, child: Text(v)))
+          .toList(),
+      onChanged: onChanged,
+    ),
+  );
 
-  Widget _buildCheckbox(String label, bool value, ValueChanged<bool?> onChanged) =>
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: CheckboxListTile(
-          value: value,
-          onChanged: onChanged,
-          contentPadding: EdgeInsets.zero,
-          controlAffinity: ListTileControlAffinity.leading,
-          activeColor: const Color(0xFF8E2DE2),
-          title: Text(label,
-              style: const TextStyle(color: Colors.black87, fontSize: 14)),
-        ),
-      );
+  Widget _buildCheckbox(
+    String label,
+    bool value,
+    ValueChanged<bool?> onChanged,
+  ) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8),
+    child: CheckboxListTile(
+      value: value,
+      onChanged: onChanged,
+      contentPadding: EdgeInsets.zero,
+      controlAffinity: ListTileControlAffinity.leading,
+      activeColor: const Color(0xFF8E2DE2),
+      title: Text(
+        label,
+        style: const TextStyle(color: Colors.black87, fontSize: 14),
+      ),
+    ),
+  );
 }
