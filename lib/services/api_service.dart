@@ -540,4 +540,38 @@ class ApiService {
       rethrow; // ✅ ensures error is properly propagated
     }
   }
+
+  Future<List<Map<String, dynamic>>> getAccountNamesList(payload) async {
+    try {
+      final token = await _storage.read(key: _tokenKey);
+
+      final response = await http.post(
+        Uri.parse("$baseUrl/Account/GetNamesList"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+          "X-Correlation-Id": generateGUID(),
+          "X-Request-Id": generateGUID(),
+        },
+        body: jsonEncode(payload),
+      );
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+
+        // ✅ Extract `accountList` properly
+        final List<dynamic> list = body['accountList'] ?? [];
+
+        // Return list as List<Map<String, dynamic>>
+        return List<Map<String, dynamic>>.from(list);
+      } else {
+        throw Exception(
+          'Failed to fetch account names: ${response.statusCode} - ${response.body}',
+        );
+      }
+    } catch (e) {
+      print('❌ Error fetching account names: $e');
+      rethrow;
+    }
+  }
 }
