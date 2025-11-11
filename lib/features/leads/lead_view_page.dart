@@ -1,3 +1,4 @@
+import 'package:crmMobileUi/features/leads/edit_lead_page.dart';
 import 'package:flutter/material.dart';
 
 class LeadViewPage extends StatefulWidget {
@@ -29,23 +30,23 @@ class _LeadViewPageState extends State<LeadViewPage> {
           elevation: 0,
           centerTitle: true,
           leading: Padding(
-  padding: const EdgeInsets.only(left: 8.0),
-  child: GestureDetector(
-    onTap: () => Navigator.pop(context),
-    child: Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white.withOpacity(0.15), // soft translucent circle
-      ),
-      padding: const EdgeInsets.all(4.5), // 👈 smaller padding = smaller circle
-      child: const Icon(
-        Icons.arrow_back,
-        color: Colors.white,
-        size: 20, // 👈 slightly smaller icon
-      ),
-    ),
-  ),
-),
+            padding: const EdgeInsets.only(left: 8.0),
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context, true), // ✅ Return true
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.15),
+                ),
+                padding: const EdgeInsets.all(4.5),
+                child: const Icon(
+                  Icons.arrow_back,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+            ),
+          ),
 
           title: const Text(
             "Lead",
@@ -55,15 +56,38 @@ class _LeadViewPageState extends State<LeadViewPage> {
               color: Colors.white,
             ),
           ),
-          actions: const [
+          actions: [
             Padding(
-              padding: EdgeInsets.only(right: 12),
-              child: Icon(Icons.edit, color: Colors.white, size: 24),
+              padding: const EdgeInsets.only(right: 12),
+              child: IconButton(
+                icon: const Icon(Icons.edit, color: Colors.white, size: 24),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                onPressed: () async {
+                  final updatedLead = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => EditLeadPage(
+                        lead: lead,
+                        leadOwners: [],
+                        // contact: contact,
+                        //contactOwners: contactOwners,
+                      ),
+                    ),
+                  );
+                  if (updatedLead != null && mounted) {
+                    setState(() {
+                      widget.leadData.clear();
+                      widget.leadData.addAll(updatedLead);
+                    });
+                  }
+                },
+              ),
             ),
-            Padding(
-      padding: EdgeInsets.only(right: 12),
-      child: Icon(Icons.more_vert, color: Colors.white, size: 26),
-    ),
+            const Padding(
+              padding: EdgeInsets.only(right: 12),
+              child: Icon(Icons.more_vert, color: Colors.white, size: 26),
+            ),
           ],
           flexibleSpace: Container(
             decoration: const BoxDecoration(
@@ -118,26 +142,36 @@ class _LeadViewPageState extends State<LeadViewPage> {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.email_outlined,
-                            size: 14, color: Color(0xFF724ACE)),
+                        const Icon(
+                          Icons.email_outlined,
+                          size: 14,
+                          color: Color(0xFF724ACE),
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           email,
                           style: const TextStyle(
-                              fontSize: 13, color: Colors.black54),
+                            fontSize: 13,
+                            color: Colors.black54,
+                          ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.phone_outlined,
-                            size: 14, color: Color(0xFF724ACE)),
+                        const Icon(
+                          Icons.phone_outlined,
+                          size: 14,
+                          color: Color(0xFF724ACE),
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           phone,
                           style: const TextStyle(
-                              fontSize: 13, color: Colors.black54),
+                            fontSize: 13,
+                            color: Colors.black54,
+                          ),
                         ),
                       ],
                     ),
@@ -146,13 +180,13 @@ class _LeadViewPageState extends State<LeadViewPage> {
               ],
             ),
           ),
-const Divider(
-  color: Color(0xFFEEECF9),      // line color
-  thickness: 2,            // line thickness
-  // indent: 16,              // left spacing
-  // endIndent: 16,           // right spacing
-),
-           // 🔹 Owner Info
+          const Divider(
+            color: Color(0xFFEEECF9), // line color
+            thickness: 2, // line thickness
+            // indent: 16,              // left spacing
+            // endIndent: 16,           // right spacing
+          ),
+          // 🔹 Owner Info
           Container(
             color: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -161,19 +195,26 @@ const Divider(
                 const CircleAvatar(
                   radius: 18,
                   backgroundColor: Colors.deepPurple,
-                  child:
-                      Text("E", style: TextStyle(color: Colors.white, fontSize: 16)),
+                  child: Text(
+                    "E",
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(owner,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w600, fontSize: 16)),
-                    Text("Owner",
-                        style:
-                            const TextStyle(color: Colors.black, fontSize: 12)),
+                    Text(
+                      owner,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      "Owner",
+                      style: const TextStyle(color: Colors.black, fontSize: 12),
+                    ),
                   ],
                 ),
               ],
@@ -188,7 +229,6 @@ const Divider(
               decoration: BoxDecoration(
                 color: const Color(0xFFDBE0FF),
                 borderRadius: BorderRadius.circular(8),
-                
               ),
               child: Padding(
                 padding: const EdgeInsets.all(4.0),
@@ -222,11 +262,11 @@ const Divider(
             ),
           ),
           const Divider(
-  color: Color(0xFFEEECF9),      // line color
-  thickness: 2,            // line thickness
-  // indent: 16,              // left spacing
-  // endIndent: 16,           // right spacing
-),
+            color: Color(0xFFEEECF9), // line color
+            thickness: 2, // line thickness
+            // indent: 16,              // left spacing
+            // endIndent: 16,           // right spacing
+          ),
         ],
       ),
 
@@ -239,9 +279,13 @@ const Divider(
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.mail_outline), label: ""),
           BottomNavigationBarItem(
-              icon: Icon(Icons.location_on_outlined), label: ""),
+            icon: Icon(Icons.location_on_outlined),
+            label: "",
+          ),
           BottomNavigationBarItem(
-              icon: Icon(Icons.photo_album_outlined), label: ""),
+            icon: Icon(Icons.photo_album_outlined),
+            label: "",
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.phone_outlined), label: ""),
         ],
       ),
@@ -249,43 +293,42 @@ const Divider(
   }
 
   // 🔹 Tabs
- Widget _buildTab(String title, int index) {
-  return Expanded(
-    child: GestureDetector(
-      onTap: () {
-        setState(() {
-          selectedTabIndex = index;
-        });
-      },
-      child: Container(
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          gradient: selectedTabIndex == index
-              ? const LinearGradient(
-                  colors: [Color(0xFF5733C7), Color(0xFF9A24C3)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                )
-              : null, // no gradient for unselected
-          color: selectedTabIndex == index
-              ? null
-              : Colors.transparent, // fallback for unselected
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-          title,
-          style: TextStyle(
+  Widget _buildTab(String title, int index) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            selectedTabIndex = index;
+          });
+        },
+        child: Container(
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            gradient: selectedTabIndex == index
+                ? const LinearGradient(
+                    colors: [Color(0xFF5733C7), Color(0xFF9A24C3)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null, // no gradient for unselected
             color: selectedTabIndex == index
-                ? Colors.white
-                : Colors.grey[700],
-            fontWeight: FontWeight.w600,
+                ? null
+                : Colors.transparent, // fallback for unselected
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            title,
+            style: TextStyle(
+              color: selectedTabIndex == index
+                  ? Colors.white
+                  : Colors.grey[700],
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 
   // 🔹 Expandable Tiles (Related Tab)
   Widget _buildExpandableTile(String title, bool hasIcons) {
