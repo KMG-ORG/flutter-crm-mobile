@@ -1,5 +1,5 @@
-import 'package:crmMobileUi/services/api_service.dart';
 import 'package:flutter/material.dart';
+import 'package:crmMobileUi/services/api_service.dart';
 
 class EditContactPage extends StatefulWidget {
   final Map<String, dynamic> contact;
@@ -17,6 +17,7 @@ class EditContactPage extends StatefulWidget {
 
 class _EditContactPageState extends State<EditContactPage> {
   final _apiService = ApiService();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   // Controllers
   late TextEditingController firstNameController;
@@ -24,31 +25,29 @@ class _EditContactPageState extends State<EditContactPage> {
   late TextEditingController emailController;
   late TextEditingController titleController;
   late TextEditingController departmentController;
-  late TextEditingController accountNameController;
-
-  // Dropdown values
-  late String contactOwner;
-  String? selectedLeadSource;
-  String? selectedSalutation;
-  late List<Map<String, dynamic>> owners = [];
-  String? selectedOwnerName;
-  String? selectedOwnerId;
 
   // Dropdown lists
   List<Map<String, dynamic>> salutations = [];
   List<Map<String, dynamic>> leadSources = [];
-  //List<String> contactOwners = ["James Merced", "Alex Smith", "John Doe"];
+  List<Map<String, dynamic>> owners = [];
+  List<Map<String, dynamic>> accounts = [];
+
+  // Selected dropdown values
+  String? selectedSalutation;
+  String? selectedLeadSource;
+  String? selectedOwnerName;
+  String? selectedOwnerId;
+  String? selectedAccountName;
+  String? selectedAccountId;
 
   bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    final contact = widget.contact;
     owners = widget.contactOwners;
-    _fetchMasterDropdownData();
+    final contact = widget.contact;
 
-    // Initialize fields
     firstNameController = TextEditingController(
       text: contact['firstName'] ?? '',
     );
@@ -58,23 +57,25 @@ class _EditContactPageState extends State<EditContactPage> {
     departmentController = TextEditingController(
       text: contact['department'] ?? '',
     );
-    accountNameController = TextEditingController(
-      text: contact['account'] ?? '',
-    );
-    //contactOwner = contact['owner'] ?? 'James Merced';
-    // prefill from contact if available
-    selectedOwnerName = widget.contact['owner'] ?? null;
-    selectedOwnerId = widget.contact['ownerId'] ?? null;
+
+    selectedOwnerName = contact['owner'] ?? null;
+    selectedOwnerId = contact['ownerId'] ?? null;
     selectedLeadSource = contact['leadSource'] ?? null;
     selectedSalutation = contact['salutation'] ?? null;
+
+    // ✅ Pre-fill Account dropdown from existing contact data
+    selectedAccountName = contact['account'] ?? null;
+    selectedAccountId = contact['accountId'] ?? null;
+
+    _fetchMasterDropdownData();
+    _fetchAccounts();
   }
 
-  // 🔹 Fetch dropdown data (Salutation & Lead Source)
+  // Fetch dropdowns (Salutation & Lead Source)
   Future<void> _fetchMasterDropdownData() async {
     try {
       setState(() => isLoading = true);
       final data = await _apiService.getFilteredMasterData();
-
       setState(() {
         salutations = List<Map<String, dynamic>>.from(data["Salutation"] ?? []);
         leadSources = List<Map<String, dynamic>>.from(data["LeadSource"] ?? []);
@@ -89,6 +90,32 @@ class _EditContactPageState extends State<EditContactPage> {
     }
   }
 
+  // ✅ Fetch Account List from API
+  Future<void> _fetchAccounts() async {
+    try {
+      final payload = {"searchText": "", "pageNumber": 1, "pageSize": 50};
+      final data = await _apiService.getAccountNamesList(payload);
+      setState(() {
+        accounts = data;
+
+        // ✅ If selectedAccountName is not in dropdown yet, add it manually
+        if (selectedAccountName != null &&
+            accounts.indexWhere((a) => a["id"] == selectedAccountId) == -1) {
+          accounts.insert(0, {
+            "id": selectedAccountId,
+            "name": selectedAccountName,
+          });
+        }
+      });
+      print("✅ Accounts loaded: ${accounts.length}");
+    } catch (e) {
+      print("❌ Error fetching accounts: $e");
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Failed to load accounts: $e")));
+    }
+  }
+
   @override
   void dispose() {
     firstNameController.dispose();
@@ -96,51 +123,56 @@ class _EditContactPageState extends State<EditContactPage> {
     emailController.dispose();
     titleController.dispose();
     departmentController.dispose();
-    accountNameController.dispose();
     super.dispose();
   }
 
-  // 🔹 Save contact (submit handler)
+  // 🔹 Save contact
   void _saveContact() async {
+    if (!_formKey.currentState!.validate()) return;
+
     try {
       setState(() => isLoading = true);
 
       final updatedContact = {
-        'id':
-            widget.contact['id'], // 👈 ensure you pass the existing contact ID
+        'id': widget.contact['id'],
         'firstName': firstNameController.text.trim(),
         'lastName': lastNameController.text.trim(),
         'email': emailController.text.trim(),
         'title': titleController.text.trim(),
         'department': departmentController.text.trim(),
-        'account': accountNameController.text.trim(),
         'ownerId': selectedOwnerId,
-        "leadSourceId": _getIdFromList(leadSources, selectedLeadSource),
+        'phone': widget.contact['phone'] ?? '',
+        'leadSourceId': _getIdFromList(leadSources, selectedLeadSource),
         'leadSource': selectedLeadSource,
         'salutation': selectedSalutation,
-        "salutationId": _getIdFromList(salutations, selectedSalutation),
+        'salutationId': _getIdFromList(salutations, selectedSalutation),
+        'account': selectedAccountName,
+        'accountId': selectedAccountId,
       };
 
-      // 🔹 Call update API
       await _apiService.updateContact(updatedContact);
 
-      // 🔹 Fetch updated contact by ID
       final refreshedContact = await _apiService.getContactById(
         widget.contact['id'],
       );
 
-      // ✅ Show success message
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Contact updated successfully!')),
+        const SnackBar(
+          content: Text('Contact updated successfully!'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
       );
 
-      // 🔹 Navigate back to Contact List, passing the refreshed contact
       Navigator.pop(context, refreshedContact);
     } catch (e) {
       debugPrint("❌ Error saving contact: $e");
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Failed to update contact: $e")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Failed to update contact: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
     } finally {
       setState(() => isLoading = false);
     }
@@ -155,7 +187,6 @@ class _EditContactPageState extends State<EditContactPage> {
     return match["id"]?.toString() ?? "";
   }
 
-  // ---------- UI ----------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -197,143 +228,180 @@ class _EditContactPageState extends State<EditContactPage> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 20),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 20),
 
-                  // ---------- Lead Image ----------
-                  Center(
-                    child: Column(
-                      children: [
-                        const CircleAvatar(
-                          radius: 40,
-                          backgroundColor: Color(0xFFE8E0FB),
-                          child: Icon(
-                            Icons.camera_alt,
-                            color: Colors.purple,
-                            size: 30,
+                    // ---------- Profile ----------
+                    Center(
+                      child: Column(
+                        children: [
+                          const CircleAvatar(
+                            radius: 40,
+                            backgroundColor: Color(0xFFE8E0FB),
+                            child: Icon(
+                              Icons.camera_alt,
+                              color: Colors.purple,
+                              size: 30,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '${firstNameController.text} ${lastNameController.text}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                          const SizedBox(height: 8),
+                          Text(
+                            '${firstNameController.text} ${lastNameController.text}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // ---------- Section Header ----------
-                  Container(
-                    width: double.infinity,
-                    color: const Color(0xFFF4F3F8),
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 10,
-                      horizontal: 16,
-                    ),
-                    child: const Text(
-                      "Contact Information",
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        ],
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 20),
 
-                  // ---------- Editable Fields ----------
-                  // _buildInfoTile("Contact Owner", contactOwner, () {
-                  //   _showSelectionDialog(
-                  //     "Select Contact Owner",
-                  //     contactOwners,
-                  //     (val) {
-                  //       setState(() => contactOwner = val);
-                  //     },
-                  //   );
-                  // }),
-                  _buildDropdown(
-                    "Contact Owner",
-                    owners.map((e) => e["display_name"].toString()).toList(),
-                    selectedOwnerName,
-                    (value) {
-                      setState(() {
-                        selectedOwnerName = value;
+                    Container(
+                      width: double.infinity,
+                      color: const Color(0xFFF4F3F8),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 10,
+                        horizontal: 16,
+                      ),
+                      child: const Text(
+                        "Contact Information",
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
 
-                        // Find corresponding userId
-                        final selectedUser = owners.firstWhere(
-                          (u) => u["display_name"] == value,
-                          orElse: () => {},
-                        );
-                        selectedOwnerId = selectedUser["userId"];
-                      });
-                    },
-                  ),
+                    _buildDropdown(
+                      "Contact Owner",
+                      owners.map((e) => e["display_name"].toString()).toList(),
+                      selectedOwnerName,
+                      (value) {
+                        setState(() {
+                          selectedOwnerName = value;
+                          final selectedUser = owners.firstWhere(
+                            (u) => u["display_name"] == value,
+                            orElse: () => {},
+                          );
+                          selectedOwnerId = selectedUser["userId"];
+                        });
+                      },
+                    ),
 
-                  // ✅ Salutation Dropdown
-                  _buildDropdown(
-                    "Salutation",
-                    salutations
-                        .map((e) => e["displayName"].toString())
-                        .toList(),
-                    selectedSalutation,
-                    (v) => setState(() => selectedSalutation = v),
-                  ),
+                    _buildDropdown(
+                      "Salutation",
+                      salutations
+                          .map((e) => e["displayName"].toString())
+                          .toList(),
+                      selectedSalutation,
+                      (v) => setState(() => selectedSalutation = v),
+                    ),
 
-                  // ✅ Lead Source Dropdown
-                  _buildDropdown(
-                    "Lead Source",
-                    leadSources
-                        .map((e) => e["displayName"].toString())
-                        .toList(),
-                    selectedLeadSource,
-                    (v) => setState(() => selectedLeadSource = v),
-                  ),
+                    _buildDropdown(
+                      "Lead Source",
+                      leadSources
+                          .map((e) => e["displayName"].toString())
+                          .toList(),
+                      selectedLeadSource,
+                      (v) => setState(() => selectedLeadSource = v),
+                    ),
 
-                  _buildTextField("First Name", firstNameController),
-                  _buildTextField("*Last Name", lastNameController),
-                  _buildTextField("Account Name", accountNameController),
-                  _buildTextField("Email", emailController),
-                  _buildTextField("Title", titleController),
-                  _buildTextField("Department", departmentController),
+                    // ✅ Account Dropdown
+                    // _buildDropdown(
+                    //   "Account Name",
+                    //   accounts.map((e) => e["name"].toString()).toList(),
+                    //   selectedAccountName,
+                    //   (value) {
+                    //     setState(() {
+                    //       selectedAccountName = value;
+                    //       final selectedAccount = accounts.firstWhere(
+                    //         (a) => a["name"] == value,
+                    //         orElse: () => {},
+                    //       );
+                    //       selectedAccountId = selectedAccount["id"];
+                    //     });
+                    //   },
+                    // ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: DropdownButtonFormField<String>(
+                        value: selectedAccountId, // ✅ use unique ID here
+                        decoration: InputDecoration(
+                          labelText: "Account Name",
+                          labelStyle: const TextStyle(
+                            color: Colors.black54,
+                            fontSize: 14,
+                          ),
+                          enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                        ),
+                        icon: const Icon(
+                          Icons.arrow_drop_down,
+                          color: Colors.black54,
+                        ),
+                        items: accounts.map((a) {
+                          final id = a["id"]?.toString();
+                          final name = a["name"]?.toString() ?? '';
+                          return DropdownMenuItem<String>(
+                            value: id, // ✅ unique id
+                            child: Text(name),
+                          );
+                        }).toList(),
+                        onChanged: (id) {
+                          setState(() {
+                            selectedAccountId = id;
+                            final selectedAccount = accounts.firstWhere(
+                              (a) => a["id"].toString() == id,
+                              orElse: () => {},
+                            );
+                            selectedAccountName = selectedAccount["name"];
+                          });
+                        },
+                      ),
+                    ),
 
-                  const SizedBox(height: 30),
-                ],
+                    _buildTextField("First Name", firstNameController),
+                    _buildTextField(
+                      "*Last Name",
+                      lastNameController,
+                      isRequired: true,
+                    ),
+                    _buildTextField("Email", emailController),
+                    _buildTextField("Title", titleController),
+                    _buildTextField("Department", departmentController),
+
+                    const SizedBox(height: 30),
+                  ],
+                ),
               ),
             ),
     );
   }
 
-  // ---------- Helper Widgets ----------
+  // ---------- Helpers ----------
 
-  Widget _buildInfoTile(String label, String value, VoidCallback onTap) {
-    return ListTile(
-      title: Text(
-        label,
-        style: const TextStyle(fontSize: 14, color: Colors.black87),
-      ),
-      subtitle: Text(
-        value,
-        style: const TextStyle(
-          fontSize: 15,
-          color: Colors.black87,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      trailing: const Icon(Icons.chevron_right, color: Colors.purple),
-      onTap: onTap,
-    );
-  }
-
-  Widget _buildTextField(String label, TextEditingController controller) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    bool isRequired = false,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: TextField(
+      child: TextFormField(
         controller: controller,
+        keyboardType: keyboardType,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
         decoration: InputDecoration(
           labelText: label,
           labelStyle: const TextStyle(color: Colors.black54, fontSize: 14),
@@ -344,6 +412,13 @@ class _EditContactPageState extends State<EditContactPage> {
             borderSide: BorderSide(color: Colors.purple),
           ),
         ),
+        validator: (value) {
+          if (isRequired && (value == null || value.trim().isEmpty)) {
+            final cleanLabel = label.replaceAll('*', '').trim();
+            return '$cleanLabel is required';
+          }
+          return null;
+        },
       ),
     );
   }
@@ -357,6 +432,7 @@ class _EditContactPageState extends State<EditContactPage> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: DropdownButtonFormField<String>(
+        value: selectedValue,
         decoration: InputDecoration(
           labelText: label,
           labelStyle: const TextStyle(color: Colors.black54, fontSize: 14),
@@ -364,40 +440,11 @@ class _EditContactPageState extends State<EditContactPage> {
             borderSide: BorderSide(color: Colors.grey.shade300),
           ),
         ),
-        value: selectedValue,
         icon: const Icon(Icons.arrow_drop_down, color: Colors.black54),
         items: items
             .map((v) => DropdownMenuItem(value: v, child: Text(v)))
             .toList(),
         onChanged: onChanged,
-      ),
-    );
-  }
-
-  void _showSelectionDialog(
-    String title,
-    List<String> options,
-    Function(String) onSelect,
-  ) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(title),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.separated(
-            shrinkWrap: true,
-            itemCount: options.length,
-            separatorBuilder: (_, __) => const Divider(),
-            itemBuilder: (ctx, index) => ListTile(
-              title: Text(options[index]),
-              onTap: () {
-                Navigator.pop(ctx);
-                onSelect(options[index]);
-              },
-            ),
-          ),
-        ),
       ),
     );
   }

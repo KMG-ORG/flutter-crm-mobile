@@ -546,12 +546,6 @@ class ApiService {
     try {
       final token = await _storage.read(key: _tokenKey);
 
-      // final payload = {
-      //   "searchText": searchText,
-      //   "pageNumber": pageNumber,
-      //   "pageSize": pageSize,
-      // };
-
       final response = await http.post(
         Uri.parse("$baseUrl/Account/GetNamesList"),
         headers: {
