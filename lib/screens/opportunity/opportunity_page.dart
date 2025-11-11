@@ -1,3 +1,4 @@
+import 'package:crmMobileUi/screens/opportunity/edit_opportunity_page.dart';
 import 'package:flutter/material.dart';
 import 'package:crmMobileUi/services/api_service.dart';
 import 'package:intl/intl.dart';
@@ -241,14 +242,50 @@ class _OpportunityPageState extends State<OpportunityPage> {
                         itemBuilder: (context, index) {
                           if (index < opportunities.length) {
                             final opp = opportunities[index];
-                            return OpportunityCard(
-                              name: opp['name'] ?? "N/A",
-                              stage: opp['stage'] ?? "N/A",
-                              //amount: opp['amount']!,
-                              amount: (opp['amount'] ?? "0").toString(),
-                              //date: opp['closingDate'] ?? "N/A",
-                              date: _formatDate(opp['closingDate']),
-                              owner: opp['owner'] ?? "N/A",
+                            // return OpportunityCard(
+                            //   name: opp['name'] ?? "N/A",
+                            //   stage: opp['stage'] ?? "N/A",
+                            //   //amount: opp['amount']!,
+                            //   amount: (opp['amount'] ?? "0").toString(),
+                            //   //date: opp['closingDate'] ?? "N/A",
+                            //   date: _formatDate(opp['closingDate']),
+                            //   owner: opp['owner'] ?? "N/A",
+                            // );
+                            return GestureDetector(
+                              onTap: () async {
+                                // Navigate to EditOpportunityPage
+                                final updatedOpportunity = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        EditOpportunityPage(opportunity: opp),
+                                  ),
+                                );
+
+                                // ✅ Optional: refresh list if user saved changes
+                                // if (updatedOpportunity != null) {
+                                //   setState(() {
+                                //     final index = opportunities.indexWhere(
+                                //       (item) =>
+                                //           item['id'] ==
+                                //           updatedOpportunity['id'],
+                                //     );
+                                //     if (index != -1) {
+                                //       opportunities[index] = updatedOpportunity;
+                                //     }
+                                //   });
+                                // }
+                                if (updatedOpportunity != null) {
+                                  await _refreshOpportutnity(); // refresh list from API
+                                }
+                              },
+                              child: OpportunityCard(
+                                name: opp['name'] ?? "N/A",
+                                stage: opp['stage'] ?? "N/A",
+                                amount: (opp['amount'] ?? "0").toString(),
+                                date: _formatDate(opp['closingDate']),
+                                owner: opp['owner'] ?? "N/A",
+                              ),
                             );
                           } else {
                             return const Padding(

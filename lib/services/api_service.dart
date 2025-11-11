@@ -110,6 +110,7 @@ class ApiService {
           "AccountType",
           "TimeZone",
           "Salutation",
+          "Stage",
         ],
       };
 
@@ -641,6 +642,104 @@ class ApiService {
     } catch (e) {
       print('❌ Error fetching lead by ID: $e');
       rethrow; // ✅ ensures error is properly propagated
+    }
+  }
+
+  Future<bool> updateOpportunity(Map<String, dynamic> data) async {
+    final token = await _storage.read(key: _tokenKey);
+
+    final response = await http.post(
+      Uri.parse(
+        "$baseUrl/Opportunity/UpdateOpportunity",
+      ), // ✅ Confirm correct path
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+        "X-Correlation-Id": generateGUID(),
+        "X-Request-Id": generateGUID(),
+      },
+      body: jsonEncode(data),
+    );
+
+    if (response.statusCode == 200) {
+      // ✅ Only status code check, no need to parse JSON
+      return true;
+    } else {
+      throw Exception(
+        'Failed to update account. Status: ${response.statusCode}',
+      );
+    }
+  }
+
+  Future<int> getTotalLead() async {
+    final token = await _storage.read(key: _tokenKey);
+    final response = await http.get(
+      Uri.parse("$baseUrl/CrmDashboard/GetTotalLead"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      // Return the plain number from response body
+      return int.tryParse(response.body) ?? 0;
+    } else {
+      throw Exception("Failed to fetch lead count: ${response.statusCode}");
+    }
+  }
+
+  Future<int> getOpenOpportunity() async {
+    final token = await _storage.read(key: _tokenKey);
+    final response = await http.get(
+      Uri.parse("$baseUrl/CrmDashboard/GetOpenOpportunity"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return int.tryParse(response.body) ?? 0;
+    } else {
+      throw Exception(
+        "Failed to fetch opportunity count: ${response.statusCode}",
+      );
+    }
+  }
+
+  Future<int> getTotalOpenTicket() async {
+    final token = await _storage.read(key: _tokenKey);
+    final response = await http.get(
+      Uri.parse("$baseUrl/CrmDashboard/TotalOpenTicket"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return int.tryParse(response.body) ?? 0;
+    } else {
+      throw Exception("Failed to fetch ticket count: ${response.statusCode}");
+    }
+  }
+
+  Future<Map<String, dynamic>> getCrmDashboard() async {
+    final token = await _storage.read(key: _tokenKey);
+
+    final response = await http.get(
+      Uri.parse("$baseUrl/CrmDashboard/GetCrmDashboard"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception("Failed to fetch CRM Dashboard: ${response.statusCode}");
     }
   }
 }
