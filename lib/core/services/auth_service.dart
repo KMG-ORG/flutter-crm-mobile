@@ -60,6 +60,7 @@ Future<String?> login() async {
     // 🔹 Acquire token using MSAL
     final result = await _pca!.acquireToken(
       scopes: [dotenv.env['AZURE_SCOPES'] ?? "User.Read"],
+      prompt: Prompt.selectAccount,
     );
 
     final token = result.accessToken;
