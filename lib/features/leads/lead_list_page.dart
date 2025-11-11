@@ -112,9 +112,8 @@ class _LeadListPageState extends State<LeadListPage> {
 
   bool showSearchBar = false;
   final TextEditingController _searchController = TextEditingController();
- 
 
-@override
+  @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
@@ -127,7 +126,7 @@ class _LeadListPageState extends State<LeadListPage> {
     _scrollController.addListener(_onScroll);
   }
 
-void _onScroll() {
+  void _onScroll() {
     if (_scrollController.position.pixels >=
             _scrollController.position.maxScrollExtent - 200 &&
         !isLoadingMore &&
@@ -137,59 +136,58 @@ void _onScroll() {
     }
   }
 
- Future<void> fetchLeads(int page, [String? search]) async {
-  try {
-    if (page == 1) {
-      setState(() => isLoading = true);
-    } else {
-      setState(() => isLoadingMore = true);
-    }
-
-    final apiService = ApiService();
-
-    final payload = {
-      'pageSize': pageSize,
-      'pageNumber': page,
-      'columnName': 'UpdatedDateTime',
-      'orderType': 'desc',
-      'filterJson': null,
-      'searchText': (search != null && search.trim().isNotEmpty)
-          ? search.trim()
-          : null,
-    };
-
-    // ✅ Replace with your actual API function for leads
-    final response =
-        await apiService.getLeads(payload) as Map<String, dynamic>;
-
-    final List<Map<String, dynamic>> newLeads =
-        (response['data'] as List<dynamic>? ?? [])
-            .map((item) => Map<String, dynamic>.from(item as Map))
-            .toList();
-
-    totalCount =
-        int.tryParse(response['totalCount']?.toString() ?? '') ?? totalCount;
-
-    setState(() {
+  Future<void> fetchLeads(int page, [String? search]) async {
+    try {
       if (page == 1) {
-        leads = newLeads;
+        setState(() => isLoading = true);
       } else {
-        leads.addAll(newLeads);
+        setState(() => isLoadingMore = true);
       }
 
-      hasMore = leads.length < totalCount;
-      isLoading = false;
-      isLoadingMore = false;
-    });
-  } catch (e) {
-    setState(() {
-      isLoading = false;
-      isLoadingMore = false;
-      errorMessage = e.toString();
-    });
-  }
-}
+      final apiService = ApiService();
 
+      final payload = {
+        'pageSize': pageSize,
+        'pageNumber': page,
+        'columnName': 'UpdatedDateTime',
+        'orderType': 'desc',
+        'filterJson': null,
+        'searchText': (search != null && search.trim().isNotEmpty)
+            ? search.trim()
+            : null,
+      };
+
+      // ✅ Replace with your actual API function for leads
+      final response =
+          await apiService.getLeads(payload) as Map<String, dynamic>;
+
+      final List<Map<String, dynamic>> newLeads =
+          (response['data'] as List<dynamic>? ?? [])
+              .map((item) => Map<String, dynamic>.from(item as Map))
+              .toList();
+
+      totalCount =
+          int.tryParse(response['totalCount']?.toString() ?? '') ?? totalCount;
+
+      setState(() {
+        if (page == 1) {
+          leads = newLeads;
+        } else {
+          leads.addAll(newLeads);
+        }
+
+        hasMore = leads.length < totalCount;
+        isLoading = false;
+        isLoadingMore = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+        isLoadingMore = false;
+        errorMessage = e.toString();
+      });
+    }
+  }
 
   void onSearchPressed() {
     setState(() {
@@ -313,35 +311,50 @@ void _onScroll() {
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : errorMessage != null
-                    ? Center(child: Text("Error: $errorMessage"))
-                    : RefreshIndicator(
-                        onRefresh: _refreshLeads,
-                        child: ListView.builder(
-                          itemCount: leads.length,
-                          itemBuilder: (context, index) {
-                            final lead = leads[index];
-                            return InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => LeadViewPage(
-                                      leadData: lead,
-                                    ),
-                                  ),
-                                );
-                              },
-                              child: LeadCard(
-                                name: lead["fullName"] ?? "Unknown",
-                                company: lead["companyName"] ?? "N/A",
-                                email: lead["email"] ?? "N/A",
-                                contact: lead["contactName"] ?? "N/A",
-                                tag: lead["leadSource"] ?? "Cold Call",
+                ? Center(child: Text("Error: $errorMessage"))
+                : RefreshIndicator(
+                    onRefresh: _refreshLeads,
+                    child: ListView.builder(
+                      itemCount: leads.length,
+                      itemBuilder: (context, index) {
+                        final lead = leads[index];
+                        return InkWell(
+                          // onTap: () async {
+                          //   final result = Navigator.push(
+                          //     context,
+                          //     MaterialPageRoute(
+                          //       builder: (context) =>
+                          //           LeadViewPage(leadData: lead),
+                          //     ),
+                          //   );
+                          //   if (result == true) {
+                          //     await _refreshLeads();
+                          //   }
+                          // },
+                          onTap: () async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    LeadViewPage(leadData: lead),
                               ),
                             );
+
+                            if (result == true) {
+                              await _refreshLeads(); // ✅ API will be called when back button pressed
+                            }
                           },
-                        ),
-                      ),
+                          child: LeadCard(
+                            name: lead["fullName"] ?? "Unknown",
+                            company: lead["companyName"] ?? "N/A",
+                            email: lead["email"] ?? "N/A",
+                            contact: lead["contactName"] ?? "N/A",
+                            tag: lead["leadSource"] ?? "Cold Call",
+                          ),
+                        );
+                      },
+                    ),
+                  ),
           ),
         ],
       ),
@@ -363,10 +376,12 @@ void _onScroll() {
             SpeedDialChild(
               child: const Icon(Icons.person),
               label: 'Create Leads',
-              onTap: () {Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AddLeadPage()),
-          );},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AddLeadPage()),
+                );
+              },
             ),
             SpeedDialChild(
               child: const Icon(Icons.download),
@@ -379,7 +394,6 @@ void _onScroll() {
     );
   }
 }
-
 
 // 🔹 Lead Card Widget
 class LeadCard extends StatelessWidget {

@@ -576,6 +576,75 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> updateLead(Map<String, dynamic> leadData) async {
+    try {
+      final token = await _storage.read(key: _tokenKey);
+      final response = await http.post(
+        Uri.parse("$baseUrl/Lead/UpdateLead"),
+        //headers: {'Content-Type': 'application/json'},
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+          "X-Correlation-Id": generateGUID(),
+          "X-Request-Id": generateGUID(),
+        },
+        body: jsonEncode(leadData),
+      );
+      // final token = await _getToken();
+      // _dio.options.headers['Authorization'] = 'Bearer $token';
+
+      // final response =
+      //     await _dio.post('${baseUrl}Contact/UpdateContact', data: contactData);
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+
+        // 🧠 Handle if backend returns int or bool instead of Map
+        if (decoded is Map<String, dynamic>) {
+          return decoded;
+        } else {
+          // Wrap primitive responses in a map
+          return {'success': true, 'value': decoded};
+        }
+      } else {
+        throw Exception(
+          'Failed to update contact: ${response.statusCode} - ${response.body}',
+        );
+      }
+    } catch (e) {
+      print('❌ Error updating contact: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> getLeadById(String id) async {
+    try {
+      final token = await _storage.read(key: _tokenKey);
+
+      final response = await http.get(
+        Uri.parse("$baseUrl/Lead/GetLeadById?id=$id"), // ✅ Corrected
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+          "X-Correlation-Id": generateGUID(),
+          "X-Request-Id": generateGUID(),
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        return body; // ✅ Now always returns Map<String, dynamic>
+      } else {
+        throw Exception(
+          'Failed to fetch lead: ${response.statusCode} - ${response.body}',
+        );
+      }
+    } catch (e) {
+      print('❌ Error fetching lead by ID: $e');
+      rethrow; // ✅ ensures error is properly propagated
+    }
+  }
+
   Future<bool> updateOpportunity(Map<String, dynamic> data) async {
     final token = await _storage.read(key: _tokenKey);
 
