@@ -1,5 +1,7 @@
-import 'package:crmMobileUi/core/services/auth_service.dart';
+import 'package:crmMobileUi/core/config/app_config.dart';
+//import 'package:crmMobileUi/core/services/auth_service.dart';
 import 'package:crmMobileUi/features/leads/lead_list_page.dart';
+import 'package:crmMobileUi/services/auth_service.dart';
 import 'package:crmMobileUi/splashScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -52,7 +54,12 @@ import 'features/auth/login_page.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  final config = AppConfig();
+  await config.load(); // Ensure apiBaseUrl is set!
 
+  // 3️⃣ Then initialize AuthService
+  final authService = AuthService();
+  await authService.init();
   // Wrap the entire app with ChangeNotifierProvider
   runApp(
     ChangeNotifierProvider(create: (_) => AuthService(), child: const MyApp()),
