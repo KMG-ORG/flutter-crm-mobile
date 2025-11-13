@@ -1,7 +1,10 @@
 import 'dart:convert';
+
+import 'package:crmMobileUi/services/auth_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:dio/dio.dart';
 
 // ///////////
 // import 'package:shared_preferences/shared_preferences.dart';
@@ -11,6 +14,8 @@ class ApiService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   static const String _tokenKey = "auth_token";
   static const String _userDetailKey = "user_detail";
+  //final _dioService = AuthService();
+  final AuthService _dioService = AuthService();
 
   // String generateGUID() {
   //   final random =
@@ -42,61 +47,93 @@ class ApiService {
   //   );
   // }
 
-  Future<Map<String, dynamic>> getLeads(Map<String, dynamic> payload) async {
-    // final token = await _storage.read(key: "access_token");
-    final token = await _storage.read(key: _tokenKey);
-    final payload = {
-      'pageSize': 20,
-      'pageNumber': 1,
-      'columnName': 'UpdatedDateTime',
-      'orderType': 'desc',
-      'filterJson': null,
-      'searchText': null,
-    };
-    final response = await http.post(
-      Uri.parse("$baseUrl/Lead/GetLeads"),
-      headers: {
-        "Authorization": "Bearer $token",
-        "Content-Type": "application/json",
-        "X-Correlation-Id": generateGUID(), // Generate X-Correlation-Id header
-        "X-Request-Id": generateGUID(), // Generate X-Request-Id header
-      },
-      body: jsonEncode(payload),
-    );
+  // Future<Map<String, dynamic>> getLeads(Map<String, dynamic> payload) async {
+  //   // final token = await _storage.read(key: "access_token");
+  //   final token = await _storage.read(key: _tokenKey);
+  //   final payload = {
+  //     'pageSize': 20,
+  //     'pageNumber': 1,
+  //     'columnName': 'UpdatedDateTime',
+  //     'orderType': 'desc',
+  //     'filterJson': null,
+  //     'searchText': null,
+  //   };
+  //   final response = await http.post(
+  //     Uri.parse("$baseUrl/Lead/GetLeads"),
+  //     headers: {
+  //       "Authorization": "Bearer $token",
+  //       "Content-Type": "application/json",
+  //       "X-Correlation-Id": generateGUID(), // Generate X-Correlation-Id header
+  //       "X-Request-Id": generateGUID(), // Generate X-Request-Id header
+  //     },
+  //     body: jsonEncode(payload),
+  //   );
 
-    if (response.statusCode == 200) {
-      final body = jsonDecode(response.body);
-      // final List leads = body['leads']; // Graph API returns { "value": [...] }
-      return {
-        'data': List<Map<String, dynamic>>.from(body['leads'] ?? []),
-        'totalCount': body['totalCount'] ?? 0,
-      };
-    } else {
-      throw Exception("Failed to fetch leads: ${response.body}");
+  //   if (response.statusCode == 200) {
+  //     final body = jsonDecode(response.body);
+  //     // final List leads = body['leads']; // Graph API returns { "value": [...] }
+  //     return {
+  //       'data': List<Map<String, dynamic>>.from(body['leads'] ?? []),
+  //       'totalCount': body['totalCount'] ?? 0,
+  //     };
+  //   } else {
+  //     throw Exception("Failed to fetch leads: ${response.body}");
+  //   }
+  // }
+
+  Future<Map<String, dynamic>> getLeads(Map<String, dynamic> payload) async {
+    try {
+      // ✅ AuthService.post() automatically adds headers & base URL
+      final response = await _dioService.post('Lead/GetLeads', data: payload);
+
+      print("🔍 getLeads status: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        return {
+          'data': List<Map<String, dynamic>>.from(data['leads'] ?? []),
+          'totalCount': data['totalCount'] ?? 0,
+        };
+      } else {
+        throw Exception(
+          'Failed to load leads: ${response.statusCode} - ${response.data}',
+        );
+      }
+    } catch (e) {
+      print("❌ getLeads error: $e");
+      rethrow;
     }
   }
 
   /// --- 🔹 Fetch saved user details from secure storage ---
   Future<Map<String, dynamic>?> getUserDetails() async {
-    try {
-      // Read JSON string from secure storage
-      final userDetail = await _storage.read(key: _userDetailKey);
-
-      if (userDetail == null || userDetail.isEmpty) {
-        print("⚠️ No user details found in storage");
-        return null;
-      }
-
-      // Decode JSON to a Map
-      final Map<String, dynamic> userMap = jsonDecode(userDetail);
-      print("👤 Loaded user details: ${userMap['username'] ?? 'Unknown'}");
-      return userMap;
-    } catch (e, s) {
-      print("❌ Error reading user details: $e");
-      print(s);
-      return null;
-    }
+    final userDetail = await _storage.read(key: _userDetailKey);
+    final Map<String, dynamic>? userMap = userDetail != null
+        ? json.decode(userDetail)
+        : null;
+    return userMap;
   }
+
+  // Future<Map<String, dynamic>?> getUserDetails() async {
+  //   try {
+  //     // Read JSON string from secure storage
+  //     final userDetail = await _storage.read(key: _userDetailKey);
+
+  //     if (userDetail == null || userDetail.isEmpty) {
+  //       print("⚠️ No user details found in storage");
+  //       return null;
+  //     }
+
+  //     // Decode JSON to a Map
+  //     final Map<String, dynamic> userMap = jsonDecode(userDetail);
+  //     print("👤 Loaded user details: ${userMap['username'] ?? 'Unknown'}");
+  //     return userMap;
+  //   } catch (e, s) {
+  //     print("❌ Error reading user details: $e");
+  //     print(s);
+  //     return null;
+  //   }
+  // }
 
   Future<Map<String, List<dynamic>>> getFilteredMasterData() async {
     try {
@@ -193,27 +230,30 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> getContacts(Map<String, dynamic> payload) async {
-    final token = await _storage.read(key: _tokenKey);
-    final response = await http.post(
-      Uri.parse("$baseUrl/Contact/GetContact"),
-      //headers: {'Content-Type': 'application/json'},
-      headers: {
-        "Authorization": "Bearer $token",
-        "Content-Type": "application/json",
-        "X-Correlation-Id": generateGUID(),
-        "X-Request-Id": generateGUID(),
-      },
-      body: jsonEncode(payload),
-    );
+    try {
+      // ✅ Use centralized Dio service
+      final response = await _dioService.post(
+        'Contact/GetContact',
+        data: payload,
+      );
 
-    if (response.statusCode == 200) {
-      final body = jsonDecode(response.body);
-      return {
-        'data': List<Map<String, dynamic>>.from(body['contacts'] ?? []),
-        'totalCount': body['totalCount'] ?? 0,
-      };
-    } else {
-      throw Exception('Failed to load contacts');
+      print("🔍 getContacts status: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+
+        return {
+          'data': List<Map<String, dynamic>>.from(data['contacts'] ?? []),
+          'totalCount': data['totalCount'] ?? 0,
+        };
+      } else {
+        throw Exception(
+          'Failed to load contacts: ${response.statusCode} - ${response.data}',
+        );
+      }
+    } catch (e) {
+      print("❌ getContacts error: $e");
+      rethrow;
     }
   }
 
@@ -475,70 +515,63 @@ class ApiService {
     Map<String, dynamic> contactData,
   ) async {
     try {
-      final token = await _storage.read(key: _tokenKey);
-      final response = await http.post(
-        Uri.parse("$baseUrl/Contact/UpdateContact"),
-        //headers: {'Content-Type': 'application/json'},
-        headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "application/json",
-          "X-Correlation-Id": generateGUID(),
-          "X-Request-Id": generateGUID(),
-        },
-        body: jsonEncode(contactData),
+      // ✅ Centralized AuthService handles headers, tokens, and baseUrl
+      final response = await _dioService.post(
+        'Contact/UpdateContact',
+        data: contactData,
       );
-      // final token = await _getToken();
-      // _dio.options.headers['Authorization'] = 'Bearer $token';
 
-      // final response =
-      //     await _dio.post('${baseUrl}Contact/UpdateContact', data: contactData);
+      print("📡 updateContact status: ${response.statusCode}");
 
       if (response.statusCode == 200) {
-        final decoded = jsonDecode(response.body);
+        final data = response.data;
 
-        // 🧠 Handle if backend returns int or bool instead of Map
-        if (decoded is Map<String, dynamic>) {
-          return decoded;
+        // 🧠 Handle both Map and primitive responses (bool/int/string)
+        if (data is Map<String, dynamic>) {
+          return data;
         } else {
-          // Wrap primitive responses in a map
-          return {'success': true, 'value': decoded};
+          // Wrap primitive response into a map
+          return {'success': true, 'value': data};
         }
       } else {
         throw Exception(
-          'Failed to update contact: ${response.statusCode} - ${response.body}',
+          'Failed to update contact: ${response.statusCode} - ${response.data}',
         );
       }
     } catch (e) {
-      print('❌ Error updating contact: $e');
+      print("❌ updateContact error: $e");
       rethrow;
     }
   }
 
   Future<Map<String, dynamic>> getContactById(String id) async {
     try {
-      final token = await _storage.read(key: _tokenKey);
-
-      final response = await http.get(
-        Uri.parse("$baseUrl/Contact/GetContactById?id=$id"), // ✅ Corrected
-        headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "application/json",
-          "X-Correlation-Id": generateGUID(),
-          "X-Request-Id": generateGUID(),
-        },
+      // ✅ Centralized Dio GET request
+      final response = await _dioService.get(
+        'Contact/GetContactById',
+        queryParams: {'id': id},
       );
 
+      print("📡 getContactById status: ${response.statusCode}");
+
       if (response.statusCode == 200) {
-        final body = jsonDecode(response.body);
-        return body; // ✅ Now always returns Map<String, dynamic>
+        final data = response.data;
+
+        // Ensure consistent return type
+        if (data is Map<String, dynamic>) {
+          return data;
+        } else {
+          // In case API returns a primitive type or list accidentally
+          return {'data': data};
+        }
       } else {
         throw Exception(
-          'Failed to fetch contact: ${response.statusCode} - ${response.body}',
+          'Failed to fetch contact: ${response.statusCode} - ${response.data}',
         );
       }
     } catch (e) {
-      print('❌ Error fetching contact by ID: $e');
-      rethrow; // ✅ ensures error is properly propagated
+      print('❌ getContactById error: $e');
+      rethrow; // Propagate error for handling in UI
     }
   }
 

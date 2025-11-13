@@ -1,6 +1,7 @@
+import 'package:crmMobileUi/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../core/services/auth_service.dart';
+//import '../../core/services/auth_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -70,7 +71,7 @@ class _LoginPageState extends State<LoginPage> {
                     gradient: LinearGradient(
                       colors: [
                         Colors.white.withOpacity(0.15),
-                        Colors.white.withOpacity(0.05)
+                        Colors.white.withOpacity(0.05),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -85,8 +86,10 @@ class _LoginPageState extends State<LoginPage> {
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 20,
+                ),
                 child: !_initialized
                     ? const CircularProgressIndicator(color: Colors.white)
                     : Column(
@@ -201,7 +204,6 @@ class _LoginPageState extends State<LoginPage> {
                           //     ),
                           //   ),
                           // ),
-
                           const SizedBox(height: 20),
 
                           // 🪟 Microsoft Login
@@ -242,15 +244,16 @@ class _LoginPageState extends State<LoginPage> {
                                       final token = await authService.login();
                                       setState(() => _loading = false);
 
-                                      if (token != null &&
-                                          token.isNotEmpty) {
-                                        _saveToken(token);
+                                      if (token != null && token.isNotEmpty) {
+                                        _saveToken(token as String);
                                       } else {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
                                           const SnackBar(
                                             content: Text(
-                                                "Login failed. Try again."),
+                                              "Login failed. Try again.",
+                                            ),
                                           ),
                                         );
                                       }
@@ -286,9 +289,17 @@ class _WaveClipper extends CustomClipper<Path> {
     final path = Path();
     path.lineTo(0, size.height * 0.4);
     path.quadraticBezierTo(
-        size.width * 0.25, size.height * 0.55, size.width * 0.5, size.height * 0.4);
+      size.width * 0.25,
+      size.height * 0.55,
+      size.width * 0.5,
+      size.height * 0.4,
+    );
     path.quadraticBezierTo(
-        size.width * 0.75, size.height * 0.25, size.width, size.height * 0.4);
+      size.width * 0.75,
+      size.height * 0.25,
+      size.width,
+      size.height * 0.4,
+    );
     path.lineTo(size.width, size.height);
     path.lineTo(0, size.height);
     path.close();
