@@ -241,11 +241,14 @@ class _LoginPageState extends State<LoginPage> {
                                   ? null
                                   : () async {
                                       setState(() => _loading = true);
-                                      final token = await authService.login();
-                                      setState(() => _loading = false);
+                                      final result = await authService.login();
+                                      final token = result['token'];
+                                      final message =
+                                          result['message'] ??
+                                          "Unexpected error";
 
                                       if (token != null && token.isNotEmpty) {
-                                        _saveToken(token as String);
+                                        _saveToken(token);
                                       } else {
                                         ScaffoldMessenger.of(
                                           context,

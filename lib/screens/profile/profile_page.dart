@@ -1,5 +1,6 @@
-import 'package:crmMobileUi/core/services/auth_service.dart';
+//import 'package:crmMobileUi/core/services/auth_service.dart';
 import 'package:crmMobileUi/services/api_service.dart';
+import 'package:crmMobileUi/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -44,7 +45,8 @@ class ProfilePage extends StatelessWidget {
         children: [
           // 🔹 Profile Card (Dynamic Data)
           FutureBuilder<Map<String, dynamic>?>(
-            future: apiService.getUserDetails(), // ✅ Using the API service method
+            future: apiService
+                .getUserDetails(), // ✅ Using the API service method
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Padding(
@@ -69,7 +71,8 @@ class ProfilePage extends StatelessWidget {
               }
 
               // ✅ Adjust these keys according to your saved user data
-              final userName = user['display_name'] ??
+              final userName =
+                  user['display_name'] ??
                   user['fullName'] ??
                   user['username'] ??
                   'Unknown User';
@@ -77,9 +80,9 @@ class ProfilePage extends StatelessWidget {
               final roles = user['roles'] ?? [];
               final roleNames = (roles is List && roles.isNotEmpty)
                   ? roles
-                      .map((r) => r['roleName'] ?? '')
-                      .where((r) => r.toString().isNotEmpty)
-                      .join(', ')
+                        .map((r) => r['roleName'] ?? '')
+                        .where((r) => r.toString().isNotEmpty)
+                        .join(', ')
                   : 'User';
 
               return Container(
@@ -93,7 +96,7 @@ class ProfilePage extends StatelessWidget {
                       color: Colors.black12,
                       blurRadius: 6,
                       offset: Offset(0, 2),
-                    )
+                    ),
                   ],
                 ),
                 child: Row(
@@ -148,8 +151,9 @@ class ProfilePage extends StatelessWidget {
                                 ),
                                 onPressed: () async {
                                   await authService.logout();
-                                  Navigator.of(context)
-                                      .pushReplacementNamed('/login');
+                                  Navigator.of(
+                                    context,
+                                  ).pushReplacementNamed('/login');
                                 },
                               ),
                             ],
@@ -157,8 +161,11 @@ class ProfilePage extends StatelessWidget {
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              const Icon(Icons.email,
-                                  size: 16, color: Colors.black54),
+                              const Icon(
+                                Icons.email,
+                                size: 16,
+                                color: Colors.black54,
+                              ),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
@@ -172,8 +179,11 @@ class ProfilePage extends StatelessWidget {
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              const Icon(Icons.work,
-                                  size: 16, color: Colors.black54),
+                              const Icon(
+                                Icons.work,
+                                size: 16,
+                                color: Colors.black54,
+                              ),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(

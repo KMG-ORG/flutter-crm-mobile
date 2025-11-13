@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:crmMobileUi/services/auth_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -137,8 +136,7 @@ class ApiService {
 
   Future<Map<String, List<dynamic>>> getFilteredMasterData() async {
     try {
-      final token = await _storage.read(key: _tokenKey);
-
+      // ✅ Define payload
       final payload = {
         "type": [
           "RevenueType",
@@ -151,20 +149,18 @@ class ApiService {
         ],
       };
 
-      final response = await http.post(
-        Uri.parse("$baseUrl/Master/GetFilteredGenericMasterTable"),
-        headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "application/json",
-          "X-Correlation-Id": generateGUID(),
-          "X-Request-Id": generateGUID(),
-        },
-        body: jsonEncode(payload),
+      // ✅ Use centralized Dio service
+      final response = await _dioService.post(
+        "Master/GetFilteredGenericMasterTable",
+        data: payload,
       );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> body = jsonDecode(response.body);
+      print("🔍 getFilteredMasterData status: ${response.statusCode}");
 
+      if (response.statusCode == 200) {
+        final List<dynamic> body = response.data;
+
+        // ✅ Transform to Map<String, List<dynamic>>
         final Map<String, List<dynamic>> result = {};
         for (var item in body) {
           final type = item["type"];
@@ -173,59 +169,66 @@ class ApiService {
             result[type] = List<Map<String, dynamic>>.from(data);
           }
         }
+
         return result;
       } else {
-        throw Exception("Failed to fetch master data: ${response.body}");
+        throw Exception(
+          "Failed to fetch master data: ${response.statusCode} - ${response.data}",
+        );
       }
-    } catch (e) {
-      throw Exception("Error fetching master data: $e");
+    } catch (e, st) {
+      print("❌ getFilteredMasterData error: $e");
+      print(st);
+      rethrow;
     }
   }
 
-  // 🔹 CREATE LEAD
   Future<Map<String, dynamic>> createLead(Map<String, dynamic> leadData) async {
     try {
-      final token = await _storage.read(key: _tokenKey);
-
-      final response = await http.post(
-        Uri.parse("$baseUrl/Lead/CreateLead"),
-        headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "application/json",
-          "X-Correlation-Id": generateGUID(),
-          "X-Request-Id": generateGUID(),
-        },
-        body: jsonEncode(leadData),
+      // ✅ Use centralized AuthService with Dio
+      final response = await _dioService.post(
+        'Lead/CreateLead',
+        data: leadData,
       );
 
-      // 🔹 Log response for debugging
-      print("Response Status: ${response.statusCode}");
-      print("Response Body: ${response.body}");
+      print("📡 createLead status: ${response.statusCode}");
+      print("📦 createLead response: ${response.data}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final bodyText = response.body.trim();
+        final data = response.data;
 
-        // ✅ If backend returns GUID or plain text instead of JSON
-        if (!bodyText.startsWith("{") && !bodyText.startsWith("[")) {
+        // 🧠 Case 1: Backend returns a GUID or plain string (not JSON)
+        if (data is String && !data.trim().startsWith('{')) {
           return {
             "success": true,
             "message": "Lead created successfully",
-            "leadId": bodyText,
+            "leadId": data.trim(),
           };
         }
 
-        // ✅ Otherwise, parse JSON
-        final body = jsonDecode(bodyText);
+        // 🧠 Case 2: Backend returns a proper JSON response
+        if (data is Map<String, dynamic>) {
+          return {
+            "success": true,
+            "message": data["message"] ?? "Lead created successfully",
+            "data": data,
+          };
+        }
+
+        // 🧠 Case 3: Fallback for unknown types
         return {
           "success": true,
-          "message": body["message"] ?? "Lead created successfully",
-          "data": body,
+          "message": "Lead created successfully",
+          "data": {"value": data},
         };
       } else {
-        throw Exception("Failed to create lead: ${response.body}");
+        throw Exception(
+          'Failed to create lead: ${response.statusCode} - ${response.data}',
+        );
       }
     } catch (e) {
-      throw Exception("Error creating lead: $e");
+      print("❌ createLead error: $e");
+      rethrow;
     }
   }
 
@@ -257,256 +260,233 @@ class ApiService {
     }
   }
 
-  // Future<List<Map<String, dynamic>>> getAccounts(payload) async {
-  //   final token = await _storage.read(key: _tokenKey);
-
-  //   // final payload = {
-  //   //   'pageSize': 20,
-  //   //   'pageNumber': 1,
-  //   //   'columnName': 'UpdatedDateTime',
-  //   //   'orderType': 'desc',
-  //   //   'filterJson': null,
-  //   //   'searchText': null,
-  //   // };
-
-  //   final response = await http.post(
-  //     Uri.parse("$baseUrl/Account/GetAccount"), // 👈 change endpoint
-  //     headers: {
-  //       "Authorization": "Bearer $token",
-  //       "Content-Type": "application/json",
-  //       "X-Correlation-Id": generateGUID(),
-  //       "X-Request-Id": generateGUID(),
-  //     },
-  //     body: jsonEncode(payload),
-  //   );
-
-  //   if (response.statusCode == 200) {
-  //     final body = jsonDecode(response.body);
-  //     final List accounts = body['account']; // 👈 match API key
-  //     return accounts.map((e) => e as Map<String, dynamic>).toList();
-  //   } else {
-  //     throw Exception("Failed to fetch accounts: ${response.body}");
-  //   }
-  // }
-
   Future<Map<String, dynamic>> getAccounts(Map<String, dynamic> payload) async {
-    final token = await _storage.read(key: _tokenKey);
-    final response = await http.post(
-      Uri.parse("$baseUrl/Account/GetAccount"),
-      //headers: {'Content-Type': 'application/json'},
-      headers: {
-        "Authorization": "Bearer $token",
-        "Content-Type": "application/json",
-        "X-Correlation-Id": generateGUID(),
-        "X-Request-Id": generateGUID(),
-      },
-      body: jsonEncode(payload),
-    );
+    try {
+      // ✅ Use your centralized Dio service
+      final response = await _dioService.post(
+        'Account/GetAccount',
+        data: payload,
+      );
 
-    if (response.statusCode == 200) {
-      final body = jsonDecode(response.body);
-      return {
-        'data': List<Map<String, dynamic>>.from(body['account'] ?? []),
-        'totalCount': body['totalCount'] ?? 0,
-      };
-    } else {
-      throw Exception('Failed to load accounts');
+      print("🔍 getAccounts status: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+
+        // ✅ Extract account data and total count
+        return {
+          'data': List<Map<String, dynamic>>.from(data['account'] ?? []),
+          'totalCount': data['totalCount'] ?? 0,
+        };
+      } else {
+        throw Exception(
+          'Failed to load accounts: ${response.statusCode} - ${response.data}',
+        );
+      }
+    } catch (e, st) {
+      print("❌ getAccounts error: $e");
+      print(st);
+      rethrow;
     }
   }
 
   Future<Map<String, dynamic>> getTickets(Map<String, dynamic> payload) async {
-    final token = await _storage.read(key: _tokenKey);
-    final response = await http.post(
-      Uri.parse("$baseUrl/Ticket/GetTicket"),
-      //headers: {'Content-Type': 'application/json'},
-      headers: {
-        "Authorization": "Bearer $token",
-        "Content-Type": "application/json",
-        "X-Correlation-Id": generateGUID(),
-        "X-Request-Id": generateGUID(),
-      },
-      body: jsonEncode(payload),
-    );
+    try {
+      // ✅ Make POST request using your centralized Dio service
+      final response = await _dioService.post(
+        'Ticket/GetTicket',
+        data: payload,
+      );
 
-    if (response.statusCode == 200) {
-      final body = jsonDecode(response.body);
-      return {
-        'data': List<Map<String, dynamic>>.from(body['ticket'] ?? []),
-        'totalCount': body['totalCount'] ?? 0,
-      };
-    } else {
-      throw Exception('Failed to load tickets');
+      print("🎫 getTickets status: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+
+        // ✅ Extract ticket list and total count
+        return {
+          'data': List<Map<String, dynamic>>.from(data['ticket'] ?? []),
+          'totalCount': data['totalCount'] ?? 0,
+        };
+      } else {
+        throw Exception(
+          'Failed to load tickets: ${response.statusCode} - ${response.data}',
+        );
+      }
+    } catch (e, st) {
+      print("❌ getTickets error: $e");
+      print(st);
+      rethrow;
     }
   }
 
   Future<Map<String, dynamic>> getCampaigns(
     Map<String, dynamic> payload,
   ) async {
-    final token = await _storage.read(key: _tokenKey);
-    final response = await http.post(
-      Uri.parse("$baseUrl/Campaign/GetCampaign"),
-      //headers: {'Content-Type': 'application/json'},
-      headers: {
-        "Authorization": "Bearer $token",
-        "Content-Type": "application/json",
-        "X-Correlation-Id": generateGUID(),
-        "X-Request-Id": generateGUID(),
-      },
-      body: jsonEncode(payload),
-    );
+    try {
+      // ✅ Make POST request using centralized Dio service
+      final response = await _dioService.post(
+        'Campaign/GetCampaign',
+        data: payload,
+      );
 
-    if (response.statusCode == 200) {
-      final body = jsonDecode(response.body);
-      return {
-        'data': List<Map<String, dynamic>>.from(body['campaign'] ?? []),
-        'totalCount': body['totalCount'] ?? 0,
-      };
-    } else {
-      throw Exception('Failed to load campaigns');
+      print("📢 getCampaigns status: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+
+        // ✅ Extract campaign list and total count
+        return {
+          'data': List<Map<String, dynamic>>.from(data['campaign'] ?? []),
+          'totalCount': data['totalCount'] ?? 0,
+        };
+      } else {
+        throw Exception(
+          'Failed to load campaigns: ${response.statusCode} - ${response.data}',
+        );
+      }
+    } catch (e, st) {
+      print("❌ getCampaigns error: $e");
+      print(st);
+      rethrow;
     }
   }
 
   Future<Map<String, dynamic>> getSales(Map<String, dynamic> payload) async {
-    final token = await _storage.read(key: _tokenKey);
-    final response = await http.post(
-      Uri.parse("$baseUrl/SaleOrder/GetSaleOrders"),
-      //headers: {'Content-Type': 'application/json'},
-      headers: {
-        "Authorization": "Bearer $token",
-        "Content-Type": "application/json",
-        "X-Correlation-Id": generateGUID(),
-        "X-Request-Id": generateGUID(),
-      },
-      body: jsonEncode(payload),
-    );
+    try {
+      // ✅ Use centralized Dio service
+      final response = await _dioService.post(
+        "SaleOrder/GetSaleOrders",
+        data: payload,
+      );
 
-    if (response.statusCode == 200) {
-      final body = jsonDecode(response.body);
-      return {
-        'data': List<Map<String, dynamic>>.from(body['saleOrders'] ?? []),
-        'totalCount': body['totalCount'] ?? 0,
-      };
-    } else {
-      throw Exception('Failed to load sales');
+      print("🔍 getSales status: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+
+        return {
+          'data': List<Map<String, dynamic>>.from(data['saleOrders'] ?? []),
+          'totalCount': data['totalCount'] ?? 0,
+        };
+      } else {
+        throw Exception(
+          "Failed to load sales: ${response.statusCode} - ${response.data}",
+        );
+      }
+    } catch (e, st) {
+      print("❌ getSales error: $e");
+      print(st);
+      rethrow;
     }
   }
 
   Future<Map<String, dynamic>> getOpportunity(
     Map<String, dynamic> payload,
   ) async {
-    final token = await _storage.read(key: _tokenKey);
-    final response = await http.post(
-      Uri.parse("$baseUrl/Opportunity/GetOpportunity"),
-      //headers: {'Content-Type': 'application/json'},
-      headers: {
-        "Authorization": "Bearer $token",
-        "Content-Type": "application/json",
-        "X-Correlation-Id": generateGUID(),
-        "X-Request-Id": generateGUID(),
-      },
-      body: jsonEncode(payload),
-    );
+    try {
+      // ✅ Use centralized Dio service
+      final response = await _dioService.post(
+        "Opportunity/GetOpportunity",
+        data: payload,
+      );
 
-    if (response.statusCode == 200) {
-      final body = jsonDecode(response.body);
-      return {
-        'data': List<Map<String, dynamic>>.from(body['opportunity'] ?? []),
-        'totalCount': body['totalCount'] ?? 0,
-      };
-    } else {
-      throw Exception('Failed to load opportunity');
+      print("🔍 getOpportunity status: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+
+        return {
+          'data': List<Map<String, dynamic>>.from(data['opportunity'] ?? []),
+          'totalCount': data['totalCount'] ?? 0,
+        };
+      } else {
+        throw Exception(
+          'Failed to load opportunity: ${response.statusCode} - ${response.data}',
+        );
+      }
+    } catch (e, st) {
+      print("❌ getOpportunity error: $e");
+      print(st);
+      rethrow;
     }
   }
 
   Future<Map<String, dynamic>> getProducts(Map<String, dynamic> payload) async {
-    final token = await _storage.read(key: _tokenKey);
-    final response = await http.post(
-      Uri.parse("$baseUrl/Product/Getlist"),
-      //headers: {'Content-Type': 'application/json'},
-      headers: {
-        "Authorization": "Bearer $token",
-        "Content-Type": "application/json",
-        "X-Correlation-Id": generateGUID(),
-        "X-Request-Id": generateGUID(),
-      },
-      body: jsonEncode(payload),
-    );
+    try {
+      // ✅ Use centralized Dio service
+      final response = await _dioService.post("Product/Getlist", data: payload);
 
-    if (response.statusCode == 200) {
-      final body = jsonDecode(response.body);
-      return {
-        'data': List<Map<String, dynamic>>.from(body['product'] ?? []),
-        'totalCount': body['totalCount'] ?? 0,
-      };
-    } else {
-      throw Exception('Failed to load Products');
+      print("🔍 getProducts status: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+
+        return {
+          'data': List<Map<String, dynamic>>.from(data['product'] ?? []),
+          'totalCount': data['totalCount'] ?? 0,
+        };
+      } else {
+        throw Exception(
+          "Failed to load products: ${response.statusCode} - ${response.data}",
+        );
+      }
+    } catch (e, st) {
+      print("❌ getProducts error: $e");
+      print(st);
+      rethrow;
     }
   }
 
   Future<bool> updateAccount(Map<String, dynamic> data) async {
-    final token = await _storage.read(key: _tokenKey);
-
-    final response = await http.post(
-      Uri.parse("$baseUrl/Account/UpdateAccount"), // ✅ Confirm correct path
-      headers: {
-        "Authorization": "Bearer $token",
-        "Content-Type": "application/json",
-        "X-Correlation-Id": generateGUID(),
-        "X-Request-Id": generateGUID(),
-      },
-      body: jsonEncode(data),
-    );
-
-    if (response.statusCode == 200) {
-      // ✅ Only status code check, no need to parse JSON
-      return true;
-    } else {
-      throw Exception(
-        'Failed to update account. Status: ${response.statusCode}',
+    try {
+      // ✅ Use centralized Dio service
+      final response = await _dioService.post(
+        "Account/UpdateAccount",
+        data: data,
       );
+
+      print("🔍 updateAccount status: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        return true; // ✅ Success
+      } else {
+        throw Exception(
+          "Failed to update account. Status: ${response.statusCode} - ${response.data}",
+        );
+      }
+    } catch (e, st) {
+      print("❌ updateAccount error: $e");
+      print(st);
+      rethrow;
     }
   }
 
   Future<List<Map<String, dynamic>>> getOwners() async {
     try {
-      final token = await _storage.read(key: _tokenKey);
-      final response = await http.get(
-        Uri.parse("$baseUrl/NetAuth/GetUsersAsync"),
-        //headers: {'Content-Type': 'application/json'},
-        headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "application/json",
-          "X-Correlation-Id": generateGUID(),
-          "X-Request-Id": generateGUID(),
-        },
-      );
-      // final response = await http.get(
-      //   Uri.parse(
-      //     "https://gateway-crm-qa.azurewebsites.net/gateway/netcrm-qa/v1/NetAuth/GetUsersAsync",
-      //   ),
-      //   headers: {
-      //     "Authorization": "Bearer $token",
-      //     "Content-Type": "application/json",
-      //     "X-Correlation-Id": generateGUID(),
-      //     "X-Request-Id": generateGUID(),
-      //   },
-      // );
+      // ✅ Use centralized Dio service
+      final response = await _dioService.get('NetAuth/GetUsersAsync');
+
+      print("🔍 getOwners status: ${response.statusCode}");
 
       if (response.statusCode == 200) {
-        final body = jsonDecode(response.body);
+        final data = response.data;
 
-        // ✅ Check if response contains `userList`
-        if (body is Map && body.containsKey("userList")) {
-          final List userList = body["userList"];
+        // ✅ Safely handle different possible response structures
+        if (data is Map && data.containsKey("userList")) {
+          final List userList = data["userList"];
           return List<Map<String, dynamic>>.from(userList);
         }
 
         return [];
       } else {
-        throw Exception("Failed to fetch contact owners: ${response.body}");
+        throw Exception(
+          'Failed to fetch contact owners: ${response.statusCode} - ${response.data}',
+        );
       }
-    } catch (e) {
-      print("❌ Error fetching contact owners: $e");
+    } catch (e, st) {
+      print("❌ getOwners error: $e");
+      print(st);
       rethrow;
     }
   }
@@ -575,204 +555,245 @@ class ApiService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getAccountNamesList(payload) async {
+  Future<List<Map<String, dynamic>>> getAccountNamesList(
+    Map<String, dynamic> payload,
+  ) async {
     try {
-      final token = await _storage.read(key: _tokenKey);
-
-      final response = await http.post(
-        Uri.parse("$baseUrl/Account/GetNamesList"),
-        headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "application/json",
-          "X-Correlation-Id": generateGUID(),
-          "X-Request-Id": generateGUID(),
-        },
-        body: jsonEncode(payload),
+      // ✅ Use centralized AuthService
+      final response = await _dioService.post(
+        'Account/GetNamesList',
+        data: payload,
       );
 
+      print("📡 getAccountNamesList status: ${response.statusCode}");
+
       if (response.statusCode == 200) {
-        final body = jsonDecode(response.body);
+        final data = response.data;
 
-        // ✅ Extract `accountList` properly
-        final List<dynamic> list = body['accountList'] ?? [];
+        // ✅ Extract `accountList` safely
+        final List<dynamic> list = data['accountList'] ?? [];
 
-        // Return list as List<Map<String, dynamic>>
+        // ✅ Ensure consistent type
         return List<Map<String, dynamic>>.from(list);
       } else {
         throw Exception(
-          'Failed to fetch account names: ${response.statusCode} - ${response.body}',
+          'Failed to fetch account names: ${response.statusCode} - ${response.data}',
         );
       }
     } catch (e) {
-      print('❌ Error fetching account names: $e');
+      print('❌ getAccountNamesList error: $e');
       rethrow;
     }
   }
 
   Future<Map<String, dynamic>> updateLead(Map<String, dynamic> leadData) async {
     try {
-      final token = await _storage.read(key: _tokenKey);
-      final response = await http.post(
-        Uri.parse("$baseUrl/Lead/UpdateLead"),
-        //headers: {'Content-Type': 'application/json'},
-        headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "application/json",
-          "X-Correlation-Id": generateGUID(),
-          "X-Request-Id": generateGUID(),
-        },
-        body: jsonEncode(leadData),
+      // ✅ Use centralized AuthService with automatic headers + base URL
+      final response = await _dioService.post(
+        'Lead/UpdateLead',
+        data: leadData,
       );
-      // final token = await _getToken();
-      // _dio.options.headers['Authorization'] = 'Bearer $token';
 
-      // final response =
-      //     await _dio.post('${baseUrl}Contact/UpdateContact', data: contactData);
+      print("📡 updateLead status: ${response.statusCode}");
 
       if (response.statusCode == 200) {
-        final decoded = jsonDecode(response.body);
+        final data = response.data;
 
-        // 🧠 Handle if backend returns int or bool instead of Map
-        if (decoded is Map<String, dynamic>) {
-          return decoded;
+        // 🧠 Handle both Map and primitive types
+        if (data is Map<String, dynamic>) {
+          return data;
         } else {
-          // Wrap primitive responses in a map
-          return {'success': true, 'value': decoded};
+          // Wrap simple response (int, bool, string) in a map
+          return {'success': true, 'value': data};
         }
       } else {
         throw Exception(
-          'Failed to update contact: ${response.statusCode} - ${response.body}',
+          'Failed to update lead: ${response.statusCode} - ${response.data}',
         );
       }
     } catch (e) {
-      print('❌ Error updating contact: $e');
+      print('❌ updateLead error: $e');
       rethrow;
     }
   }
 
   Future<Map<String, dynamic>> getLeadById(String id) async {
     try {
-      final token = await _storage.read(key: _tokenKey);
-
-      final response = await http.get(
-        Uri.parse("$baseUrl/Lead/GetLeadById?id=$id"), // ✅ Corrected
-        headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "application/json",
-          "X-Correlation-Id": generateGUID(),
-          "X-Request-Id": generateGUID(),
-        },
+      // ✅ Use centralized Dio helper that auto-handles token, headers, and baseUrl
+      final response = await _dioService.get(
+        'Lead/GetLeadById',
+        queryParams: {'id': id},
       );
 
+      print("📡 getLeadById status: ${response.statusCode}");
+
       if (response.statusCode == 200) {
-        final body = jsonDecode(response.body);
-        return body; // ✅ Now always returns Map<String, dynamic>
+        final data = response.data;
+
+        // 🧠 Ensure consistent Map response
+        if (data is Map<String, dynamic>) {
+          return data;
+        } else {
+          return {'data': data};
+        }
       } else {
         throw Exception(
-          'Failed to fetch lead: ${response.statusCode} - ${response.body}',
+          'Failed to fetch lead: ${response.statusCode} - ${response.data}',
         );
       }
     } catch (e) {
-      print('❌ Error fetching lead by ID: $e');
-      rethrow; // ✅ ensures error is properly propagated
+      print('❌ getLeadById error: $e');
+      rethrow; // propagate error for UI handling
     }
   }
 
   Future<bool> updateOpportunity(Map<String, dynamic> data) async {
-    final token = await _storage.read(key: _tokenKey);
-
-    final response = await http.post(
-      Uri.parse(
-        "$baseUrl/Opportunity/UpdateOpportunity",
-      ), // ✅ Confirm correct path
-      headers: {
-        "Authorization": "Bearer $token",
-        "Content-Type": "application/json",
-        "X-Correlation-Id": generateGUID(),
-        "X-Request-Id": generateGUID(),
-      },
-      body: jsonEncode(data),
-    );
-
-    if (response.statusCode == 200) {
-      // ✅ Only status code check, no need to parse JSON
-      return true;
-    } else {
-      throw Exception(
-        'Failed to update account. Status: ${response.statusCode}',
+    try {
+      // ✅ Use centralized Dio service
+      final response = await _dioService.post(
+        "Opportunity/UpdateOpportunity",
+        data: data,
       );
+
+      print("🔍 updateOpportunity status: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        return true; // ✅ Successful update
+      } else {
+        throw Exception(
+          "Failed to update opportunity: ${response.statusCode} - ${response.data}",
+        );
+      }
+    } catch (e, st) {
+      print("❌ updateOpportunity error: $e");
+      print(st);
+      rethrow;
     }
   }
 
   Future<int> getTotalLead() async {
-    final token = await _storage.read(key: _tokenKey);
-    final response = await http.get(
-      Uri.parse("$baseUrl/CrmDashboard/GetTotalLead"),
-      headers: {
-        "Authorization": "Bearer $token",
-        "Content-Type": "application/json",
-      },
-    );
+    try {
+      // ✅ Use centralized AuthService helper (auto handles token + headers)
+      final response = await _dioService.get('CrmDashboard/GetTotalLead');
 
-    if (response.statusCode == 200) {
-      // Return the plain number from response body
-      return int.tryParse(response.body) ?? 0;
-    } else {
-      throw Exception("Failed to fetch lead count: ${response.statusCode}");
+      print("📊 getTotalLead status: ${response.statusCode}");
+      print("📦 getTotalLead response: ${response.data}");
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+
+        // 🧠 Handle plain integer or string response
+        if (data is int) return data;
+        if (data is String) return int.tryParse(data) ?? 0;
+
+        // 🧠 Handle JSON response (if backend returns wrapped data)
+        if (data is Map && data.containsKey('totalLead')) {
+          return int.tryParse(data['totalLead'].toString()) ?? 0;
+        }
+
+        // Default fallback
+        return 0;
+      } else {
+        throw Exception(
+          'Failed to fetch total leads: ${response.statusCode} - ${response.data}',
+        );
+      }
+    } catch (e) {
+      print("❌ getTotalLead error: $e");
+      rethrow;
     }
   }
 
   Future<int> getOpenOpportunity() async {
-    final token = await _storage.read(key: _tokenKey);
-    final response = await http.get(
-      Uri.parse("$baseUrl/CrmDashboard/GetOpenOpportunity"),
-      headers: {
-        "Authorization": "Bearer $token",
-        "Content-Type": "application/json",
-      },
-    );
+    try {
+      // ✅ Use centralized Dio helper (automatically sets token + headers)
+      final response = await _dioService.get('CrmDashboard/GetOpenOpportunity');
 
-    if (response.statusCode == 200) {
-      return int.tryParse(response.body) ?? 0;
-    } else {
-      throw Exception(
-        "Failed to fetch opportunity count: ${response.statusCode}",
-      );
+      print("💼 getOpenOpportunity status: ${response.statusCode}");
+      print("📦 getOpenOpportunity response: ${response.data}");
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+
+        // 🧠 Handle multiple possible return formats
+        if (data is int) return data;
+        if (data is String) return int.tryParse(data) ?? 0;
+        if (data is Map && data.containsKey('openOpportunity')) {
+          return int.tryParse(data['openOpportunity'].toString()) ?? 0;
+        }
+
+        // 🧩 Fallback for unexpected format
+        return 0;
+      } else {
+        throw Exception(
+          'Failed to fetch open opportunities: ${response.statusCode} - ${response.data}',
+        );
+      }
+    } catch (e) {
+      print("❌ getOpenOpportunity error: $e");
+      rethrow;
     }
   }
 
   Future<int> getTotalOpenTicket() async {
-    final token = await _storage.read(key: _tokenKey);
-    final response = await http.get(
-      Uri.parse("$baseUrl/CrmDashboard/TotalOpenTicket"),
-      headers: {
-        "Authorization": "Bearer $token",
-        "Content-Type": "application/json",
-      },
-    );
+    try {
+      // ✅ Use centralized AuthService helper (auto adds token + headers)
+      final response = await _dioService.get('CrmDashboard/TotalOpenTicket');
 
-    if (response.statusCode == 200) {
-      return int.tryParse(response.body) ?? 0;
-    } else {
-      throw Exception("Failed to fetch ticket count: ${response.statusCode}");
+      print("🎟️ getTotalOpenTicket status: ${response.statusCode}");
+      print("📦 getTotalOpenTicket response: ${response.data}");
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+
+        // 🧠 Handle different possible response formats
+        if (data is int) return data;
+        if (data is String) return int.tryParse(data) ?? 0;
+        if (data is Map && data.containsKey('totalOpenTicket')) {
+          return int.tryParse(data['totalOpenTicket'].toString()) ?? 0;
+        }
+
+        // 🧩 Fallback — unexpected response format
+        return 0;
+      } else {
+        throw Exception(
+          'Failed to fetch total open tickets: ${response.statusCode} - ${response.data}',
+        );
+      }
+    } catch (e) {
+      print("❌ getTotalOpenTicket error: $e");
+      rethrow;
     }
   }
 
   Future<Map<String, dynamic>> getCrmDashboard() async {
-    final token = await _storage.read(key: _tokenKey);
+    try {
+      // ✅ Use centralized Dio helper (auto handles token, headers, base URL)
+      final response = await _dioService.get('CrmDashboard/GetCrmDashboard');
 
-    final response = await http.get(
-      Uri.parse("$baseUrl/CrmDashboard/GetCrmDashboard"),
-      headers: {
-        "Authorization": "Bearer $token",
-        "Content-Type": "application/json",
-      },
-    );
+      print("📊 getCrmDashboard status: ${response.statusCode}");
+      print("📦 getCrmDashboard response: ${response.data}");
 
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception("Failed to fetch CRM Dashboard: ${response.statusCode}");
+      if (response.statusCode == 200) {
+        final data = response.data;
+
+        // 🧠 Ensure the response is a valid map
+        if (data is Map<String, dynamic>) {
+          return data;
+        } else if (data is String) {
+          // If backend returns stringified JSON
+          return jsonDecode(data);
+        } else {
+          throw Exception("Unexpected response format: ${data.runtimeType}");
+        }
+      } else {
+        throw Exception(
+          "Failed to fetch CRM Dashboard: ${response.statusCode} - ${response.data}",
+        );
+      }
+    } catch (e) {
+      print("❌ getCrmDashboard error: $e");
+      rethrow;
     }
   }
 }
